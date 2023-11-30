@@ -17,7 +17,7 @@ Our monitoring firmware leverages the ESP-IDF framework, ESP-32-S3 microcontroll
 To use the monitoring firmware in your project:
 
 1. **Install ESP-IDF**: Follow the [ESP-IDF installation guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html) to set up the ESP-IDF framework.
-2. **Clone the Repository**: Clone the repository to your local machine using `git clone https://github.com/BuzzVerse/lora_esp32_firmware.git`.
+2. **Clone the Repository**: Clone the repository to your local machine using <br> `git clone https://github.com/BuzzVerse/lora_esp32_firmware.git`
 3. **Integrate Sensors**: Customize the firmware by integrating sensors relevant to your monitoring application.
 4. **Configure LoRa Settings**: Adjust LoRa communication parameters based on your deployment requirements.
 5. **Build and Flash**: Use the ESP-IDF build system to build the firmware and flash it onto your ESP-32-S3 device.
