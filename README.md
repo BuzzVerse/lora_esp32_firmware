@@ -1,32 +1,18 @@
-# _Sample project_
+# BuzzVerse Science Club Embedded Project
 
-(See the README.md file in the upper level 'examples' directory for more information about examples.)
+Welcome to the BuzzVerse Science Club's embedded project repository! This project utilizes the ESP-32-S3 microcontroller and LoRa technology to create an exciting and innovative application. Whether you're a club member, a fellow student, or an open-source enthusiast, we invite you to explore our code, contribute, and learn with us.
 
-This is the simplest buildable example. The example is used by command `idf.py create-project`
-that copies the project to user specified path and set it's name. For more information follow the [docs page](https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html#start-a-new-project)
+## Project Overview
+
+Our project focuses on leveraging the capabilities of the ESP-32-S3 microcontroller and LoRa communication to address real-world challenges. We aim to promote hands-on learning, collaboration, and the application of cutting-edge technologies in the field of embedded systems.
+
+## Features
+
+- **ESP-32-S3 Microcontroller**: Utilizing the powerful features of the ESP-32-S3 for efficient and reliable embedded applications.
+- **LoRa Technology**: Leveraging LoRa communication for long-range, low-power connectivity in our project.
+- **Open-Source**: Open-source code and documentation for the benefit of the community.
 
 
+## License
 
-## How to use example
-We encourage the users to use the example as a template for the new projects.
-A recommended way is to follow the instructions on a [docs page](https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html#start-a-new-project).
-
-## Example folder contents
-
-The project **sample_project** contains one source file in C language [main.c](main/main.c). The file is located in folder [main](main).
-
-ESP-IDF projects are built using CMake. The project build configuration is contained in `CMakeLists.txt`
-files that provide set of directives and instructions describing the project's source files and targets
-(executable, library, or both). 
-
-Below is short explanation of remaining files in the project folder.
-
-```
-├── CMakeLists.txt
-├── main
-│   ├── CMakeLists.txt
-│   └── main.c
-└── README.md                  This is the file you are currently reading
-```
-Additionally, the sample project contains Makefile and component.mk files, used for the legacy Make based build system. 
-They are not used or needed when building with CMake and idf.py.
+This project is licensed under the [MIT License](LICENSE).
