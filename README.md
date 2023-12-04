@@ -32,4 +32,4 @@ This firmware is licensed under the [MIT License](LICENSE). Feel free to use, mo
 
 ## Contact
 
-For any inquiries or collaboration opportunities, please contact us at [olafbykowski1@gmail.com](mailto:olafbykowski1@gmail.com).
+For any inquiries or collaboration opportunities, please contact us at [contact@buzzverse.dev](mailto:contact@buzzverse.dev).
