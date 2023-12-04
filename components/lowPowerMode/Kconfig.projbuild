@@ -1,0 +1,7 @@
+menu "Sleep configuration"
+    config LOW_POWER_MODE_SLEEP_TIME_SEC 
+        int "Sleep time in seconds"
+        default 60
+        help
+          Sleep time in seconds
+endmenu
