@@ -36,6 +36,9 @@ sdkconfig.old
 # Built Visual Studio Code Extensions
 *.vsix
 
+#Doxygen generated files
+docs/**
+
 ### VisualStudioCode Patch ###
 # Ignore all local history of files
 .history
