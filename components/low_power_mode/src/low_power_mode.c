@@ -21,7 +21,7 @@ void low_power_mode_set_sleep_time(int sleep_time_sec)
 }
 
 /**
- * This function makes the device enter into the low power mode. Before entering into the low power mode, it sets the sleep time using the `low_power_mode_set_sleep_time` function.
+ * This function makes the device enter into the low power mode. Before entering into the low power mode, make sure to set the sleep time using the function `low_power_mode_set_sleep_time`.
  *
  * @warning All data in the RAM will be lost when the device enters into the low power mode.
  */
