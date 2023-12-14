@@ -62,13 +62,11 @@ Thank you for considering contributing to our project! We appreciate your intere
 ### Building Documentation
 
 - Ensure that Doxygen is installed on your local machine. You can download it [here](https://www.doxygen.nl/download.html).
-- Run Doxygen on the project to generate the documentation.
+- Run Doxygen on the project to generate the documentation, and make sure that the output is correct.
 
    ```bash
    doxygen Doxyfile
    ```
-
-   - Include the generated documentation in your pull request if changes are made to the documentation.
 
 ### Additional Resources
 
