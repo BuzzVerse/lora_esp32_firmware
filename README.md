@@ -22,9 +22,9 @@ To use the monitoring firmware in your project:
 4. **Configure LoRa Settings**: Adjust LoRa communication parameters based on your deployment requirements.
 5. **Build and Flash**: Use the ESP-IDF build system to build the firmware and flash it onto your ESP-32-C3 device.
 
-<!-- ## Contributing
+## Contributing
 
-We welcome contributions from the community. If you'd like to contribute to the development of this firmware, follow the steps outlined in our [Contribution Guidelines](CONTRIBUTING.md). -->
+We welcome contributions from the community. If you'd like to contribute to the development of this firmware, follow the steps outlined in our [Contribution Guidelines](CONTRIBUTING.md).
 
 ## License
 
