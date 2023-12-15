@@ -37,7 +37,7 @@ sdkconfig.old
 *.vsix
 
 #Doxygen generated files
-docs/**
+docs/html/**
 
 ### VisualStudioCode Patch ###
 # Ignore all local history of files
