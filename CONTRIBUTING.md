@@ -33,13 +33,13 @@ Thank you for considering contributing to our project! We appreciate your intere
    - Provide a brief overview of the purpose and contents of each file.
    - Mention any important conventions, data structures, or algorithms used in the file.
 
-   ```cpp
-   /**
-    * @file filename.cpp
-    * @brief Brief description of the file.
-    *
-    * Detailed description (if necessary).
-    */
+   ```c
+      /**
+      * @file filename.c
+      * @brief Brief description of the file.
+      *
+      * Detailed description (if necessary).
+      */
    ```
 
 3. **Grouping and Modules:**
