@@ -7,7 +7,7 @@
  *
  * @brief This file contains the declaration for the low power mode manager.
  * @addtogroup low_power_mode Low Power Mode
- * 
+ *
  *  @{
  */
 
