@@ -30,6 +30,10 @@ To use the monitoring firmware in your project:
 
 We welcome contributions from the community. If you'd like to contribute to the development of this firmware, follow the steps outlined in our [Contribution Guidelines](CONTRIBUTING.md).
 
+## Documentation
+
+The technical documentation of the project is available at [docs.buzzverse.dev](https://docs.buzzverse.dev).
+
 ## License
 
 This firmware is licensed under the [MIT License](LICENSE). Feel free to use, modify, and distribute it in accordance with the license terms.
