@@ -30,8 +30,9 @@ var NAVTREE =
       [ "Features", "index.html#autotoc_md9", null ],
       [ "Getting Started", "index.html#autotoc_md10", null ],
       [ "Contributing", "index.html#autotoc_md11", null ],
-      [ "License", "index.html#autotoc_md12", null ],
-      [ "Contact", "index.html#autotoc_md13", null ]
+      [ "Documentation", "index.html#autotoc_md12", null ],
+      [ "License", "index.html#autotoc_md13", null ],
+      [ "Contact", "index.html#autotoc_md14", null ]
     ] ],
     [ "Contributing Guidelines", "md_CONTRIBUTING.html", [
       [ "Code Documentation with Doxygen", "md_CONTRIBUTING.html#autotoc_md1", [
