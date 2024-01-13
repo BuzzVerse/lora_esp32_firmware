@@ -1,35 +1,41 @@
-#include <stdio.h>
-#include "low_power_mode.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_err.h"
+#include "esp_log.h"
 
-/**
- * @brief The task that enters into the low power mode.
- *
- * FreeRTOS task that enters into the low power mode. It sets the sleep time using the `low_power_mode_set_sleep_time` function and then enters into the low power mode using the `low_power_mode_enter_deep_sleep` function.
- */
-void low_power_mode_task()
+#include "bme280.h"
+
+#define TAG_BME280 "BME280"
+
+void bme280_task()
 {
-    low_power_mode_set_sleep_time(CONFIG_LOW_POWER_MODE_SLEEP_TIME_SEC);
-    for (;;)
+    uint32_t com_rslt;
+
+    com_rslt = bme280_init_driver((0x76));
+    com_rslt += bme280_set_oversamp();
+    com_rslt += bme280_set_settings();
+
+    ESP_LOGI(TAG_BME280, "BME280 init result: %ld", com_rslt);
+    if (com_rslt == 0)
     {
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
-        low_power_mode_enter_deep_sleep();
+        ESP_LOGI(TAG_BME280, "BME280 init success");
+        for (;;)
+        {
+            ESP_LOGI(TAG_BME280, "Temperature: %.2f C", bme280_read_temperature());
+            ESP_LOGI(TAG_BME280, "Pressure: %.2f hPa", bme280_read_pressure() / 100);
+            ESP_LOGI(TAG_BME280, "Humidity: %.2f %%", bme280_read_humidity());
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+        }
+    }
+    else
+    {
+        ESP_LOGI(TAG_BME280, "BME280 init failed. code: %ld", com_rslt);
+        vTaskDelete(NULL);
     }
 }
 
-/**
- * @file main.c
- *
- * @brief This file contains the main function.
- */
-
-/**
- * @brief This function creates a task that enters into the low power mode after 5 seconds.
- *
- * This function is the entry point of the program. It creates a task that enters into the low power mode after 5 seconds.
- */
+// Main application
 void app_main(void)
 {
-    xTaskCreate(low_power_mode_task, "deep_sleep_task", 2048, NULL, 5, NULL);
+    xTaskCreate(&bme280_task, "bme280_task", 4096, NULL, 4, NULL);
 }
