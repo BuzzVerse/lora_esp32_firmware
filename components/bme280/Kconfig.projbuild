@@ -12,8 +12,8 @@ menu "BME280 configuration"
             Pin the master SDA line is connected to
     
     config BME280_I2C_ADDRESS
-        int "I2C address"
-        default 118
+        hex "I2C address"
+        default (0x76)
         help
             I2C address of the BME280 sensor
 endmenu

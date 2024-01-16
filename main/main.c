@@ -11,7 +11,7 @@ void bme280_task()
 {
     uint32_t com_rslt;
 
-    com_rslt = bme280_init_driver((0x76));
+    com_rslt = bme280_init_driver(CONFIG_BME280_I2C_ADDRESS);
     com_rslt += bme280_set_oversamp();
     com_rslt += bme280_set_settings();
 

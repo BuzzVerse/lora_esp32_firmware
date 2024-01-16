@@ -28,7 +28,6 @@ void i2c_master_init(void)
     i2c_driver_install(I2C_NUM_0, I2C_MODE_MASTER, 0, 0, 0);
 }
 
-// Function to read data from BME280 using I2C
 int8_t i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t cnt)
 {
     int32_t iError = SUCCESS;
@@ -98,12 +97,6 @@ void delay_us(uint32_t msek)
 {
     vTaskDelay(msek / portTICK_PERIOD_MS);
 }
-// kinda stinky code
-struct bme280_t bme280 = {
-    .bus_write = i2c_write,
-    .bus_read = i2c_read,
-    .dev_addr = BME280_I2C_ADDRESS1,
-    .delay_msec = delay_us};
 
 esp_err_t bme280_init_driver(uint8_t dev_addr)
 {
