@@ -37,7 +37,7 @@ void i2c_master_init(void)
 
 int8_t i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t cnt)
 {
-    int32_t iError = SUCCESS;
+    int8_t iError = SUCCESS;
     esp_err_t espRc;
 
     // Create I2C command link
@@ -68,12 +68,12 @@ int8_t i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t 
     // Delete the I2C command link to free up resources
     i2c_cmd_link_delete(cmd);
 
-    return (int8_t)iError; // Return the result
+    return iError; // Return the result
 }
 
 int8_t i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t cnt)
 {
-    int32_t iError = SUCCESS;
+    int8_t iError = SUCCESS;
     esp_err_t espRc;
 
     // Create I2C command link
@@ -112,13 +112,13 @@ int8_t i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t c
     // Delete the I2C command link to free up resources
     i2c_cmd_link_delete(cmd);
 
-    return (int8_t)iError; // Return the result
+    return iError; // Return the result
 }
 
-// Function to provide microsecond delay
-void delay_us(uint32_t msek)
+// Function to provide millisecond delay
+void delay_ms(uint32_t ticks)
 {
-    vTaskDelay(msek / portTICK_PERIOD_MS);
+    vTaskDelay(ticks / portTICK_PERIOD_MS);
 }
 
 esp_err_t bme280_init_driver(uint8_t dev_addr)
@@ -126,7 +126,7 @@ esp_err_t bme280_init_driver(uint8_t dev_addr)
 
     // Initialize the BME280 driver structure with I2C functions and the given address
     bme280.dev_addr = dev_addr;
-    bme280.delay_msec = delay_us;
+    bme280.delay_msec = delay_ms;
     bme280.bus_write = i2c_write;
     bme280.bus_read = i2c_read;
 
