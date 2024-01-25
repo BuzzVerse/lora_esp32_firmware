@@ -7,9 +7,6 @@
  * @authors Bykowski Olaf, Rafał Majewski
  *
  * @brief This file contains the declaration for the BME280 driver.
- * @addtogroup bme280 BME 280 Driver
- *
- *  @{
  */
 
 /**
@@ -110,5 +107,3 @@ double bme280_read_temperature(void);
 double bme280_read_humidity(void);
 
 #endif // BME280_H
-
-/** @} */
