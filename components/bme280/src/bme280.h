@@ -15,6 +15,8 @@
  * @param dev_addr I2C address of the BME280 sensor. Takes a hex value.
  *
  * @details This function initializes the I2C bus with values from config and initializes the BME280 sensor.
+ * 
+ * @returns ESP_OK if successful, ESP_FAIL if unsuccessful
  *
  */
 esp_err_t bme280_init_driver(uint8_t dev_addr);
@@ -72,6 +74,8 @@ esp_err_t bme280_set_oversamp(uint8_t oversamp_pressure, uint8_t oversamp_temper
  * @note 2 - normal mode
  *
  * @details This function sets the standby time, filter coefficient and power mode for the BME280 sensor.
+ * 
+ * @returns ESP_OK if successful, ESP_FAIL if unsuccessful
  *
  */
 esp_err_t bme280_set_settings(uint8_t standby_time, uint8_t filter_coeff, uint8_t power_mode);
@@ -79,31 +83,28 @@ esp_err_t bme280_set_settings(uint8_t standby_time, uint8_t filter_coeff, uint8_
 /**
  * @brief Function to read pressure
  *
- * @return Pressure in Pa
- *
- * @details This function reads the pressure from the BME280 sensor.
- *
+ * @param pressure Pointer to the variable where the pressure will be stored
+ * 
+ * @returns ESP_OK if successful, ESP_FAIL if unsuccessful
  */
-double bme280_read_pressure(void);
+esp_err_t bme280_read_pressure(double *pressure);
 
 /**
  * @brief Function to read temperature
  *
- * @return Temperature in C
- *
- * @details This function reads the temperature from the BME280 sensor.
- *
+ * @param temperature Pointer to the variable where the temperature will be stored
+ * 
+ * @returns ESP_OK if successful, ESP_FAIL if unsuccessful
  */
-double bme280_read_temperature(void);
+esp_err_t bme280_read_temperature(double *temperature);
 
 /**
  * @brief Function to read humidity
  *
- * @return Humidity in %
- *
- * @details This function reads the humidity from the BME280 sensor.
- *
+ * @param humidity Pointer to the variable where the humidity will be stored
+ * 
+ * @returns ESP_OK if successful, ESP_FAIL if unsuccessful
  */
-double bme280_read_humidity(void);
+esp_err_t bme280_read_humidity(double *humidity);
 
 #endif // BME280_H

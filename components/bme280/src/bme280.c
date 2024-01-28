@@ -16,8 +16,10 @@
 struct bme280_t bme280;
 
 // Function to initialize I2C
-void i2c_master_init(void)
+esp_err_t i2c_master_init(void)
 {
+    esp_err_t esp_rc;
+
     // Configuration structure for I2C
     i2c_config_t i2c_config = {
         .mode = I2C_MODE_MASTER,                // I2C mode: Master
@@ -29,16 +31,26 @@ void i2c_master_init(void)
     };
 
     // Configure I2C parameters
-    i2c_param_config(I2C_NUM_0, &i2c_config);
+    esp_rc = i2c_param_config(I2C_NUM_0, &i2c_config);
 
     // Install the I2C driver
-    i2c_driver_install(I2C_NUM_0, I2C_MODE_MASTER, 0, 0, 0);
+    esp_rc += i2c_driver_install(I2C_NUM_0, I2C_MODE_MASTER, 0, 0, 0);
+
+    if (esp_rc == ESP_OK)
+    {
+        ESP_LOGI(TAG_BME280, "I2C init success");
+        return ESP_OK;
+    }
+    else
+    {
+        ESP_LOGE(TAG_BME280, "I2C init failed. code: %d", esp_rc);
+        return ESP_FAIL;
+    }
 }
 
-int8_t i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t cnt)
+esp_err_t i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t cnt)
 {
-    int8_t iError = SUCCESS;
-    esp_err_t espRc;
+    esp_err_t esp_rc;
 
     // Create I2C command link
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
@@ -55,26 +67,26 @@ int8_t i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t 
     i2c_master_stop(cmd);
 
     // Execute the I2C command sequence
-    espRc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 10 / portTICK_PERIOD_MS);
-    if (espRc == ESP_OK)
-    {
-        iError = 0; // Success
-    }
-    else
-    {
-        iError = -1; // Error
-    }
+    esp_rc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 10 / portTICK_PERIOD_MS);
 
     // Delete the I2C command link to free up resources
     i2c_cmd_link_delete(cmd);
 
-    return iError; // Return the result
+    // Check if the write was successful
+    if (esp_rc == ESP_OK)
+    {
+        return ESP_OK;
+    }
+    else
+    {
+        ESP_LOGE(TAG_BME280, "I2C write failed. code: %d", esp_rc);
+        return ESP_FAIL;
+    }
 }
 
-int8_t i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t cnt)
+esp_err_t i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t cnt)
 {
-    int8_t iError = SUCCESS;
-    esp_err_t espRc;
+    esp_err_t esp_rc;
 
     // Create I2C command link
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
@@ -99,20 +111,21 @@ int8_t i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t c
     i2c_master_stop(cmd);
 
     // Execute the I2C command sequence
-    espRc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 10 / portTICK_PERIOD_MS);
-    if (espRc == ESP_OK)
-    {
-        iError = 0; // Success
-    }
-    else
-    {
-        iError = -1; // Error
-    }
+    esp_rc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 10 / portTICK_PERIOD_MS);
 
     // Delete the I2C command link to free up resources
     i2c_cmd_link_delete(cmd);
 
-    return iError; // Return the result
+    // Check if the read was successful
+    if (esp_rc == ESP_OK)
+    {
+        return ESP_OK;
+    }
+    else
+    {
+        ESP_LOGE(TAG_BME280, "I2C read failed. code: %d", esp_rc);
+        return ESP_FAIL;
+    }
 }
 
 // Function to provide millisecond delay
@@ -123,7 +136,6 @@ void delay_ms(uint32_t ticks)
 
 esp_err_t bme280_init_driver(uint8_t dev_addr)
 {
-
     // Initialize the BME280 driver structure with I2C functions and the given address
     bme280.dev_addr = dev_addr;
     bme280.delay_msec = delay_ms;
@@ -239,7 +251,7 @@ esp_err_t bme280_set_settings(uint8_t standby_time, uint8_t filter_coeff, uint8_
     }
 }
 
-double bme280_read_pressure(void)
+esp_err_t bme280_read_pressure(double *pressure)
 {
     s32 com_rslt;
 
@@ -252,17 +264,18 @@ double bme280_read_pressure(void)
     // Check if the read was successful
     if (com_rslt == SUCCESS)
     {
-        // Compensate the pressure value and return it
-        return bme280_compensate_pressure_double(v_uncomp_pressure_s32);
+        // Compensate the pressure value and write it to the pointer
+        *pressure = bme280_compensate_pressure_double(v_uncomp_pressure_s32);
+        return ESP_OK;
     }
     else
     {
         ESP_LOGE(TAG_BME280, "BME280 uncomp pressure read failed. code: %d", com_rslt);
-        return 0;
+        return ESP_FAIL;
     }
 }
 
-double bme280_read_temperature(void)
+esp_err_t bme280_read_temperature(double *temperature)
 {
     s32 com_rslt;
 
@@ -275,17 +288,18 @@ double bme280_read_temperature(void)
     // Check if the read was successful
     if (com_rslt == SUCCESS)
     {
-        // Compensate the temperature value and return it
-        return bme280_compensate_temperature_double(v_uncomp_temperature_s32);
+        // Compensate the temperature value and write it to the pointer
+        *temperature = bme280_compensate_temperature_double(v_uncomp_temperature_s32);
+        return ESP_OK;
     }
     else
     {
         ESP_LOGE(TAG_BME280, "BME280 uncomp temperature read failed. code: %d", com_rslt);
-        return 0;
+        return ESP_FAIL;
     }
 }
 
-double bme280_read_humidity(void)
+esp_err_t bme280_read_humidity(double *humidity)
 {
     s32 com_rslt;
 
@@ -298,12 +312,13 @@ double bme280_read_humidity(void)
     // Check if the read was successful
     if (com_rslt == SUCCESS)
     {
-        // Compensate the humidity value and return it
-        return bme280_compensate_humidity_double(v_uncomp_humidity_s32);
+        // Compensate the humidity value and write it to the pointer
+        *humidity = bme280_compensate_humidity_double(v_uncomp_humidity_s32);
+        return ESP_OK;
     }
     else
     {
         ESP_LOGE(TAG_BME280, "BME280 uncomp humidity read failed. code: %d", com_rslt);
-        return 0;
+        return ESP_FAIL;
     }
 }
