@@ -15,8 +15,8 @@ void main_task()
     double temperature, pressure, humidity;
 
     esp_rc = bme280_init_driver(CONFIG_BME280_I2C_ADDRESS);
-    esp_rc += bme280_set_oversamp(4, 4, 4);
-    esp_rc += bme280_set_settings(0, 4, 2);
+    esp_rc += bme280_set_oversamp(OVERSAMP_4X, OVERSAMP_4X, OVERSAMP_4X);
+    esp_rc += bme280_set_settings(STANDBY_10MS, FILTER_16, MODE_FORCED);
 
     // wait 100ms for the sensor to reach a stable state
     vTaskDelay(100 / portTICK_PERIOD_MS);
@@ -32,13 +32,11 @@ void main_task()
             bme280_read_humidity(&humidity);
 
             ESP_LOGI(TAG_BME280, "Temperature: %.2f C, Pressure: %.2f hPa, Humidity: %.2f %%", temperature, pressure / 100, humidity);
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
 
-            if (i % 10 == 0)
-            {
-                // low_power_mode_set_sleep_time(10);
-                // low_power_mode_enter_deep_sleep();
-            }
+            vTaskDelay(10000 / portTICK_PERIOD_MS);
+
+            low_power_mode_set_sleep_time(10);
+            low_power_mode_enter_deep_sleep();
         }
     }
     else

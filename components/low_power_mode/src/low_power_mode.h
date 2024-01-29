@@ -5,7 +5,7 @@
  * @file low_power_mode.h
  * @authors Bykowski Olaf, Rafał Majewski
  *
- * @brief This file contains the declaration for the low power mode manager.
+ * @brief This file contains declarations for the Low Power Mode driver.
  *
  */
 

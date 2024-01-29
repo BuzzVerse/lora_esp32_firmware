@@ -3,6 +3,7 @@
 #include "freertos/task.h"
 #include "driver/i2c.h"
 #include "bme280_lib.h"
+#include "bme280.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "driver/gpio.h"
@@ -165,22 +166,9 @@ esp_err_t bme280_init_driver(uint8_t dev_addr)
     return com_rslt;
 }
 
-esp_err_t bme280_set_oversamp(uint8_t oversamp_pressure, uint8_t oversamp_temperature, uint8_t oversamp_humidity)
+esp_err_t bme280_set_oversamp(bme280_oversampling_t oversamp_pressure, bme280_oversampling_t oversamp_temperature, bme280_oversampling_t oversamp_humidity)
 {
     s32 com_rslt;
-
-    // Map settings to actual values for the driver
-    uint8_t oversampling_settings[6] = {
-        BME280_OVERSAMP_SKIPPED,
-        BME280_OVERSAMP_1X,
-        BME280_OVERSAMP_2X,
-        BME280_OVERSAMP_4X,
-        BME280_OVERSAMP_8X,
-        BME280_OVERSAMP_16X};
-
-    oversamp_pressure = oversampling_settings[oversamp_pressure];
-    oversamp_temperature = oversampling_settings[oversamp_temperature];
-    oversamp_humidity = oversampling_settings[oversamp_humidity];
 
     // Set the oversampling
     com_rslt = bme280_set_oversamp_pressure(oversamp_pressure);
@@ -200,37 +188,10 @@ esp_err_t bme280_set_oversamp(uint8_t oversamp_pressure, uint8_t oversamp_temper
     }
 }
 
-esp_err_t bme280_set_settings(uint8_t standby_time, uint8_t filter_coeff, uint8_t power_mode)
+esp_err_t bme280_set_settings(bme280_standby_time_t standby_time, bme280_filter_coeff_t filter_coeff, bme280_power_mode_t power_mode)
 {
     // Result of communication results
     s32 com_rslt;
-
-    // Map settings to actual values for the driver
-    uint8_t standby_settings[8] = {
-        BME280_STANDBY_TIME_1_MS,
-        BME280_STANDBY_TIME_63_MS,
-        BME280_STANDBY_TIME_125_MS,
-        BME280_STANDBY_TIME_250_MS,
-        BME280_STANDBY_TIME_500_MS,
-        BME280_STANDBY_TIME_1000_MS,
-        BME280_STANDBY_TIME_10_MS,
-        BME280_STANDBY_TIME_20_MS};
-
-    uint8_t filter_settings[5] = {
-        BME280_FILTER_COEFF_OFF,
-        BME280_FILTER_COEFF_2,
-        BME280_FILTER_COEFF_4,
-        BME280_FILTER_COEFF_8,
-        BME280_FILTER_COEFF_16};
-
-    uint8_t power_settings[3] = {
-        BME280_SLEEP_MODE,
-        BME280_FORCED_MODE,
-        BME280_NORMAL_MODE};
-
-    standby_time = standby_settings[standby_time];
-    filter_coeff = filter_settings[filter_coeff];
-    power_mode = power_settings[power_mode];
 
     // Set the settings
     com_rslt = bme280_set_standby_durn(standby_time);

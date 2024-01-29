@@ -1,12 +1,14 @@
 #ifndef BME280_H
 #define BME280_H
+
+#include "bme280_defs.h"
 #include "esp_err.h"
 
 /**
  * @file bme280.h
  * @authors Bykowski Olaf, Rafał Majewski
  *
- * @brief This file contains the declaration for the BME280 driver.
+ * @brief This file contains declarations for the BME280 driver.
  */
 
 /**
@@ -15,7 +17,7 @@
  * @param dev_addr I2C address of the BME280 sensor. Takes a hex value.
  *
  * @details This function initializes the I2C bus with values from config and initializes the BME280 sensor.
- * 
+ *
  * @returns ESP_OK if successful, ESP_FAIL if unsuccessful
  *
  */
@@ -42,7 +44,7 @@ esp_err_t bme280_init_driver(uint8_t dev_addr);
  *
  * @returns ESP_OK if successful, ESP_FAIL if unsuccessful
  */
-esp_err_t bme280_set_oversamp(uint8_t oversamp_pressure, uint8_t oversamp_temperature, uint8_t oversamp_humidity);
+esp_err_t bme280_set_oversamp(bme280_oversampling_t oversamp_pressure, bme280_oversampling_t oversamp_temperature, bme280_oversampling_t oversamp_humidity);
 
 /**
  * @brief Function to set standby time, filter coefficient and power mode
@@ -74,17 +76,17 @@ esp_err_t bme280_set_oversamp(uint8_t oversamp_pressure, uint8_t oversamp_temper
  * @note 2 - normal mode
  *
  * @details This function sets the standby time, filter coefficient and power mode for the BME280 sensor.
- * 
+ *
  * @returns ESP_OK if successful, ESP_FAIL if unsuccessful
  *
  */
-esp_err_t bme280_set_settings(uint8_t standby_time, uint8_t filter_coeff, uint8_t power_mode);
+esp_err_t bme280_set_settings(bme280_standby_time_t standby_time, bme280_filter_coeff_t filter_coeff, bme280_power_mode_t power_mode);
 
 /**
  * @brief Function to read pressure
  *
  * @param pressure Pointer to the variable where the pressure will be stored
- * 
+ *
  * @returns ESP_OK if successful, ESP_FAIL if unsuccessful
  */
 esp_err_t bme280_read_pressure(double *pressure);
@@ -93,7 +95,7 @@ esp_err_t bme280_read_pressure(double *pressure);
  * @brief Function to read temperature
  *
  * @param temperature Pointer to the variable where the temperature will be stored
- * 
+ *
  * @returns ESP_OK if successful, ESP_FAIL if unsuccessful
  */
 esp_err_t bme280_read_temperature(double *temperature);
@@ -102,7 +104,7 @@ esp_err_t bme280_read_temperature(double *temperature);
  * @brief Function to read humidity
  *
  * @param humidity Pointer to the variable where the humidity will be stored
- * 
+ *
  * @returns ESP_OK if successful, ESP_FAIL if unsuccessful
  */
 esp_err_t bme280_read_humidity(double *humidity);
