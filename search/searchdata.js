@@ -1,10 +1,11 @@
 var indexSectionsWithContent =
 {
-  0: "abclm",
-  1: "lm",
-  2: "al",
-  3: "l",
-  4: "bc"
+  0: "bcflmos",
+  1: "bl",
+  2: "bl",
+  3: "b",
+  4: "fmos",
+  5: "bc"
 };
 
 var indexSectionNames =
@@ -12,8 +13,9 @@ var indexSectionNames =
   0: "all",
   1: "files",
   2: "functions",
-  3: "groups",
-  4: "pages"
+  3: "enums",
+  4: "enumvalues",
+  5: "pages"
 };
 
 var indexSectionLabels =
@@ -21,7 +23,8 @@ var indexSectionLabels =
   0: "All",
   1: "Files",
   2: "Functions",
-  3: "Modules",
-  4: "Pages"
+  3: "Enumerations",
+  4: "Enumerator",
+  5: "Pages"
 };
 

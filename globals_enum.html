@@ -7,7 +7,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Lora ESP-32 Firmware: Low Power Mode</title>
+<title>Lora ESP-32 Firmware: Globals</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -82,7 +82,7 @@ $(function() {
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
-$(document).ready(function(){initNavTree('group__low__power__mode.html',''); initResizable(); });
+$(document).ready(function(){initNavTree('globals_enum.html',''); initResizable(); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -100,74 +100,21 @@ $(document).ready(function(){initNavTree('group__low__power__mode.html',''); ini
 </iframe>
 </div>
 
-<div class="header">
-  <div class="summary">
-<a href="#func-members">Functions</a>  </div>
-  <div class="headertitle">
-<div class="title">Low Power Mode</div>  </div>
-</div><!--header-->
 <div class="contents">
-<table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:ga33de8933bdd3524b5a93ca01984a7d06"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__low__power__mode.html#ga33de8933bdd3524b5a93ca01984a7d06">low_power_mode_enter_deep_sleep</a> (void)</td></tr>
-<tr class="memdesc:ga33de8933bdd3524b5a93ca01984a7d06"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function for making the device enter into the low power mode.  <a href="group__low__power__mode.html#ga33de8933bdd3524b5a93ca01984a7d06">More...</a><br /></td></tr>
-<tr class="separator:ga33de8933bdd3524b5a93ca01984a7d06"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga588ec8e4089e5d055b78dd20b85d1585"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__low__power__mode.html#ga588ec8e4089e5d055b78dd20b85d1585">low_power_mode_set_sleep_time</a> (int sleep_time_sec)</td></tr>
-<tr class="memdesc:ga588ec8e4089e5d055b78dd20b85d1585"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function for setting the sleep time for the low power mode.  <a href="group__low__power__mode.html#ga588ec8e4089e5d055b78dd20b85d1585">More...</a><br /></td></tr>
-<tr class="separator:ga588ec8e4089e5d055b78dd20b85d1585"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table>
-<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<h2 class="groupheader">Function Documentation</h2>
-<a id="ga33de8933bdd3524b5a93ca01984a7d06"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga33de8933bdd3524b5a93ca01984a7d06">&#9670;&nbsp;</a></span>low_power_mode_enter_deep_sleep()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void low_power_mode_enter_deep_sleep </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Function for making the device enter into the low power mode. </p>
-<p>This function makes the device enter into the low power mode. Before entering into the low power mode, make sure to set the sleep time using the <a class="el" href="group__low__power__mode.html#ga588ec8e4089e5d055b78dd20b85d1585">low_power_mode_set_sleep_time</a> function.</p>
-<dl class="section warning"><dt>Warning</dt><dd>All data in the RAM will be lost when the device enters into the low power mode. </dd></dl>
-
-</div>
-</div>
-<a id="ga588ec8e4089e5d055b78dd20b85d1585"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga588ec8e4089e5d055b78dd20b85d1585">&#9670;&nbsp;</a></span>low_power_mode_set_sleep_time()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void low_power_mode_set_sleep_time </td>
-          <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>sleep_time_sec</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Function for setting the sleep time for the low power mode. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">sleep_time_sec</td><td>The sleep time in seconds.</td></tr>
-  </table>
-  </dd>
-</dl>
-<p>This function sets the sleep time for the low power mode. The sleep time is specified in seconds. </p>
-
-</div>
-</div>
+&#160;<ul>
+<li>bme280_filter_coeff_t
+: <a class="el" href="bme280__defs_8h.html#a943e8d3bfac98af24704ac04bd6bf9ac">bme280_defs.h</a>
+</li>
+<li>bme280_oversampling_t
+: <a class="el" href="bme280__defs_8h.html#ae53a30a575e76255ecfa9a4f1170b6e3">bme280_defs.h</a>
+</li>
+<li>bme280_power_mode_t
+: <a class="el" href="bme280__defs_8h.html#ae8f7481c79cbd944592296ae7e266d7a">bme280_defs.h</a>
+</li>
+<li>bme280_standby_time_t
+: <a class="el" href="bme280__defs_8h.html#a7238fa36ccbff4310fc526d4edd33f2a">bme280_defs.h</a>
+</li>
+</ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

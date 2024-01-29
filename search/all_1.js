@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['buzzverse_20monitoring_20firmware_1',['BuzzVerse Monitoring Firmware',['../index.html',1,'']]]
+  ['contributing_20guidelines_13',['Contributing Guidelines',['../md_CONTRIBUTING.html',1,'']]]
 ];

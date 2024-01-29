@@ -43,12 +43,13 @@ var NAVTREE =
       ] ],
       [ "Conclusion", "md_CONTRIBUTING.html#autotoc_md6", null ]
     ] ],
-    [ "Modules", "modules.html", "modules" ],
     [ "Files", "files.html", [
       [ "File List", "files.html", "files_dup" ],
       [ "Globals", "globals.html", [
         [ "All", "globals.html", null ],
-        [ "Functions", "globals_func.html", null ]
+        [ "Functions", "globals_func.html", null ],
+        [ "Enumerations", "globals_enum.html", null ],
+        [ "Enumerator", "globals_eval.html", null ]
       ] ]
     ] ]
   ] ]
@@ -56,7 +57,7 @@ var NAVTREE =
 
 var NAVTREEINDEX =
 [
-"dir_409f97388efe006bc3438b95e9edef48.html"
+"bme280_8h.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
