@@ -5,10 +5,8 @@
  * @file low_power_mode.h
  * @authors Bykowski Olaf, Rafał Majewski
  *
- * @brief This file contains the declaration for the low power mode manager.
- * @addtogroup low_power_mode Low Power Mode
+ * @brief This file contains declarations for the Low Power Mode driver.
  *
- *  @{
  */
 
 /**
@@ -31,5 +29,3 @@ void low_power_mode_enter_deep_sleep(void);
 void low_power_mode_set_sleep_time(int sleep_time_sec);
 
 #endif // LOW_POWER_MODE_H
-
-/** @} */
