@@ -1,0 +1,38 @@
+menu "LoRa Configuration"
+
+config CS_GPIO
+    int "CS GPIO"
+    range 0 35
+    default 20
+    help
+	Pin Number where the NCS pin of the LoRa module is connected to.
+
+config RST_GPIO
+    int "RST GPIO"
+    range 0 35
+    default 21
+    help
+	Pin Number where the NRST pin of the LoRa module is connected to.
+
+config MISO_GPIO
+    int "MISO GPIO"
+    range 0 35
+    default 9
+    help
+	Pin Number to be used as the MISO SPI signal.
+
+config MOSI_GPIO
+    int "MOSI GPIO"
+    range 0 35
+    default 10
+    help
+	Pin Number to be used as the MOSI SPI signal.
+
+config SCK_GPIO
+    int "SCK GPIO"
+    range 0 35
+    default 8
+    help
+	Pin Number to be used as the SCK SPI signal.
+
+endmenu
