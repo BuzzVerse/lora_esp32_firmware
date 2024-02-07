@@ -1,38 +1,73 @@
 menu "LoRa Configuration"
 
-config CS_GPIO
-    int "CS GPIO"
-    range 0 35
-    default 20
-    help
-	Pin Number where the NCS pin of the LoRa module is connected to.
+	config GPIO_RANGE_MAX
+		int
+		default 33 if IDF_TARGET_ESP32
+		default 46 if IDF_TARGET_ESP32S2
+		default 48 if IDF_TARGET_ESP32S3
+		default 18 if IDF_TARGET_ESP32C2
+		default 19 if IDF_TARGET_ESP32C3
+		default 30 if IDF_TARGET_ESP32C6
 
-config RST_GPIO
-    int "RST GPIO"
-    range 0 35
-    default 21
-    help
-	Pin Number where the NRST pin of the LoRa module is connected to.
+	config MISO_GPIO
+		int "MISO GPIO"
+		range 0 GPIO_RANGE_MAX
+		default 19 if IDF_TARGET_ESP32
+		default 37 if IDF_TARGET_ESP32S2 || IDF_TARGET_ESP32S3
+		default  4 # C3 and others
+		help
+			Pin Number to be used as the MISO SPI signal.
 
-config MISO_GPIO
-    int "MISO GPIO"
-    range 0 35
-    default 9
-    help
-	Pin Number to be used as the MISO SPI signal.
+	config SCK_GPIO
+		int "SCK GPIO"
+		range 0 GPIO_RANGE_MAX
+		default 18 if IDF_TARGET_ESP32
+		default 36 if IDF_TARGET_ESP32S2 || IDF_TARGET_ESP32S3
+		default  5 # C3 and others
+		help
+			Pin Number to be used as the SCK SPI signal.
 
-config MOSI_GPIO
-    int "MOSI GPIO"
-    range 0 35
-    default 10
-    help
-	Pin Number to be used as the MOSI SPI signal.
+	config MOSI_GPIO
+		int "MOSI GPIO"
+		range 0 GPIO_RANGE_MAX
+		default 23 if IDF_TARGET_ESP32
+		default 35 if IDF_TARGET_ESP32S2 || IDF_TARGET_ESP32S3
+		default  6 # C3 and others
+		help
+			Pin Number to be used as the MOSI SPI signal.
 
-config SCK_GPIO
-    int "SCK GPIO"
-    range 0 35
-    default 8
-    help
-	Pin Number to be used as the SCK SPI signal.
+	config CS_GPIO
+		int "NSS GPIO"
+		range 0 GPIO_RANGE_MAX
+		default 15 if IDF_TARGET_ESP32
+		default 34 if IDF_TARGET_ESP32S2 || IDF_TARGET_ESP32S3
+		default  7 # C3 and others
+		help
+			Pin Number where the NCS pin of the LoRa module is connected to.
+
+	config RST_GPIO
+		int "RST GPIO"
+		range 0 GPIO_RANGE_MAX
+		default 16 if IDF_TARGET_ESP32
+		default 38 if IDF_TARGET_ESP32S2 || IDF_TARGET_ESP32S3
+		default  3 # C3 and others
+		help
+			Pin Number where the NRST pin of the LoRa module is connected to.
+
+	choice SPI_HOST
+		prompt "SPI peripheral that controls this bus"
+		default SPI2_HOST
+		help
+			Select SPI peripheral that controls this bus.
+		config SPI2_HOST
+			bool "SPI2_HOST"
+			help
+				Use SPI2_HOST. This is also called HSPI_HOST.
+		config SPI3_HOST
+			depends on IDF_TARGET_ESP32 || IDF_TARGET_ESP32S2 || IDF_TARGET_ESP32S3
+			bool "SPI3_HOST"
+			help
+				USE SPI3_HOST. This is also called VSPI_HOST
+	endchoice
 
 endmenu
