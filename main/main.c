@@ -19,7 +19,7 @@
 
 #include "lora_driver.h"
 
-#define CONFIG_RECEIVER 1
+#define CONFIG_SENDER 1
 #define CONFIG_433MHZ 1
 
 #if CONFIG_SENDER
@@ -31,7 +31,7 @@ void task_tx(void *pvParameters)
     while (1)
     {
         TickType_t nowTick = xTaskGetTickCount();
-        int send_len = sprintf((char *)buf, "Hello World!! %" PRIu32, nowTick);
+        int send_len = sprintf((char *)buf, "Puszczam szczura %" PRIu32, nowTick);
         lora_send_packet(buf, send_len);
         ESP_LOGI(pcTaskGetName(NULL), "%d byte packet sent...", send_len);
         int lost = lora_packet_lost();
@@ -100,9 +100,9 @@ void app_main(void)
 
 	lora_enable_crc();
 
-	int cr = 1;
-	int bw = 7;
-	int sf = 7;
+	int cr = 8;
+	int bw = 0;
+	int sf = 12;
 #if CONFIF_ADVANCED
 	cr = CONFIG_CODING_RATE
 	bw = CONFIG_BANDWIDTH;

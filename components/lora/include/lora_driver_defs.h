@@ -1,5 +1,5 @@
-#ifndef LORA_LIB_DEFS_H
-#define LORA_LIB_DEFS_H
+#ifndef LORA_DRIVER_DEFS_H
+#define LORA_DRIVER_DEFS_H
 
 /*
  * Register definitions
@@ -70,4 +70,4 @@
 
 #define TAG "LORA_DRIVER"
 
-#endif // LORA_LIB_DEFS_H
+#endif // LORA_DRIVER_DEFS_H
