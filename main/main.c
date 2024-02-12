@@ -19,19 +19,28 @@
 
 #include "lora_driver.h"
 
-#define CONFIG_SENDER 1
+#define CONFIG_RECEIVER 1
+// #define CONFIG_SENDER 1
 #define CONFIG_433MHZ 1
 
 #if CONFIG_SENDER
 void task_tx(void *pvParameters)
 {
     ESP_LOGI(pcTaskGetName(NULL), "Start");
-    uint8_t buf[256] = {0}; // Maximum Payload size of SX1276/77/78/79 is 255
+    uint8_t buf[256] = {0};
+    vTaskDelay(pdMS_TO_TICKS(1000)); // Wait for receiver to start
 
     while (1)
     {
-        TickType_t nowTick = xTaskGetTickCount();
-        int send_len = sprintf((char *)buf, "Puszczam szczura %" PRIu32, nowTick);
+        buf[0] = 0x00;
+        buf[1] = 0x01;
+        buf[2] = 0x02;
+        buf[3] = 0x03;
+        buf[4] = 0x04;
+        buf[5] = 0x05;
+
+        uint8_t send_len = 6;
+
         lora_send_packet(buf, send_len);
         ESP_LOGI(pcTaskGetName(NULL), "%d byte packet sent...", send_len);
         int lost = lora_packet_lost();
@@ -55,12 +64,15 @@ void task_rx(void *pvParameters)
         lora_receive(); // put into receive mode
         bool hasReceived;
         lora_received(&hasReceived);
-        
+
         if (hasReceived)
         {
             int rxLen;
             lora_receive_packet(buf, &rxLen, sizeof(buf));
-            ESP_LOGI(pcTaskGetName(NULL), "%d byte packet received:[%.*s]", rxLen, rxLen, buf);
+            for(int i = 0; i < rxLen; i++)
+            {
+                ESP_LOGI(TAG, "0x%x", buf[i]);
+            }
         }
         vTaskDelay(1); // Avoid WatchDog alerts
     }                  // end while
@@ -70,67 +82,71 @@ void task_rx(void *pvParameters)
 // Main application
 void app_main(void)
 {
-    if (lora_init() != ESP_OK) {
-		ESP_LOGE(pcTaskGetName(NULL), "Does not recognize the module");
-		while(1) {
-			vTaskDelay(1);
-		}
-	}
+    if (lora_init() != ESP_OK)
+    {
+        ESP_LOGE(pcTaskGetName(NULL), "Does not recognize the module");
+        while (1)
+        {
+            vTaskDelay(1);
+        }
+    }
 
 #if CONFIG_169MHZ
-	ESP_LOGI(pcTaskGetName(NULL), "Frequency is 169MHz");
-	lora_set_frequency(169e6); // 169MHz
+    ESP_LOGI(pcTaskGetName(NULL), "Frequency is 169MHz");
+    lora_set_frequency(169e6); // 169MHz
 #elif CONFIG_433MHZ
-	ESP_LOGI(pcTaskGetName(NULL), "Frequency is 433MHz");
-	lora_set_frequency(433e6); // 433MHz
+    ESP_LOGI(pcTaskGetName(NULL), "Frequency is 433MHz");
+    lora_set_frequency(433e6); // 433MHz
 #elif CONFIG_470MHZ
-	ESP_LOGI(pcTaskGetName(NULL), "Frequency is 470MHz");
-	lora_set_frequency(470e6); // 470MHz
+    ESP_LOGI(pcTaskGetName(NULL), "Frequency is 470MHz");
+    lora_set_frequency(470e6); // 470MHz
 #elif CONFIG_866MHZ
-	ESP_LOGI(pcTaskGetName(NULL), "Frequency is 866MHz");
-	lora_set_frequency(866e6); // 866MHz
+    ESP_LOGI(pcTaskGetName(NULL), "Frequency is 866MHz");
+    lora_set_frequency(866e6); // 866MHz
 #elif CONFIG_915MHZ
-	ESP_LOGI(pcTaskGetName(NULL), "Frequency is 915MHz");
-	lora_set_frequency(915e6); // 915MHz
+    ESP_LOGI(pcTaskGetName(NULL), "Frequency is 915MHz");
+    lora_set_frequency(915e6); // 915MHz
 #elif CONFIG_OTHER
-	ESP_LOGI(pcTaskGetName(NULL), "Frequency is %dMHz", CONFIG_OTHER_FREQUENCY);
-	long frequency = CONFIG_OTHER_FREQUENCY * 1000000;
-	lora_set_frequency(frequency);
+    ESP_LOGI(pcTaskGetName(NULL), "Frequency is %dMHz", CONFIG_OTHER_FREQUENCY);
+    long frequency = CONFIG_OTHER_FREQUENCY * 1000000;
+    lora_set_frequency(frequency);
 #endif
 
-	lora_enable_crc();
+    lora_enable_crc();
 
-	int cr = 8;
-	int bw = 0;
-	int sf = 12;
+    int cr = 1;
+    int bw = 7;
+    int sf = 7;
+
 #if CONFIF_ADVANCED
-	cr = CONFIG_CODING_RATE
-	bw = CONFIG_BANDWIDTH;
-	sf = CONFIG_SF_RATE;
+    cr = CONFIG_CODING_RATE
+        bw = CONFIG_BANDWIDTH;
+    sf = CONFIG_SF_RATE;
 #endif
 
-	lora_set_coding_rate(cr);
-	//lora_set_coding_rate(CONFIG_CODING_RATE);
-	//cr = lora_get_coding_rate();
-	ESP_LOGI(pcTaskGetName(NULL), "coding_rate=%d", cr);
+    lora_set_coding_rate(cr);
+    // lora_set_coding_rate(CONFIG_CODING_RATE);
+    // cr = lora_get_coding_rate();
+    ESP_LOGI(pcTaskGetName(NULL), "coding_rate=%d", cr);
 
-	lora_set_bandwidth(bw);
-	//lora_set_bandwidth(CONFIG_BANDWIDTH);
-	//int bw = lora_get_bandwidth();
-	ESP_LOGI(pcTaskGetName(NULL), "bandwidth=%d", bw);
+    lora_set_bandwidth(bw);
+    // lora_set_bandwidth(CONFIG_BANDWIDTH);
+    // int bw = lora_get_bandwidth();
+    ESP_LOGI(pcTaskGetName(NULL), "bandwidth=%d", bw);
 
-	lora_set_spreading_factor(sf);
-	//lora_set_spreading_factor(CONFIG_SF_RATE);
-	//int sf = lora_get_spreading_factor();
-	ESP_LOGI(pcTaskGetName(NULL), "spreading_factor=%d", sf);
+    lora_set_spreading_factor(sf);
+    // lora_set_spreading_factor(CONFIG_SF_RATE);
+    // int sf = lora_get_spreading_factor();
+    ESP_LOGI(pcTaskGetName(NULL), "spreading_factor=%d", sf);
+
+    lora_dump_registers();
 
 #if CONFIG_SENDER
-	xTaskCreate(&task_tx, "TX", 1024*3, NULL, 5, NULL);
+    xTaskCreate(&task_tx, "TX", 1024 * 3, NULL, 5, NULL);
 #endif
 #if CONFIG_RECEIVER
-	xTaskCreate(&task_rx, "RX", 1024*3, NULL, 5, NULL);
+    xTaskCreate(&task_rx, "RX", 1024 * 3, NULL, 5, NULL);
 #endif
-
 
     // TaskHandle_t main_task_handle = NULL;
     // int x_task_returned = xTaskCreate(&main_task, "main_task", 2048, NULL, 4, &main_task_handle);

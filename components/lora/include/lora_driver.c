@@ -2,7 +2,7 @@
 #include "lora_driver_defs.h"
 #include "spi_api.h"
 
-//to delete
+// to delete
 #include "driver/spi_master.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -25,6 +25,7 @@ typedef enum
 static uint8_t __implicit;
 static long __frequency;
 static uint8_t __send_packet_lost = 0;
+static uint8_t *irq;
 
 lora_status_t lora_write_reg(uint8_t reg, uint8_t val)
 {
@@ -438,6 +439,25 @@ lora_status_t lora_disable_crc(void)
    return lora_write_reg(REG_MODEM_CONFIG_2, reg_val & 0xfb);
 }
 
+lora_status_t lora_dump_registers(void)
+{
+   uint8_t i;
+   printf("00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n");
+   for (i = 0; i < 0x40; i++)
+   {
+      uint8_t reg_val;
+      if (lora_read_reg(i, &reg_val) != LORA_OK)
+      {
+         return LORA_FAIL;
+      }
+      printf("%02X ", reg_val);
+      if ((i & 0x0f) == 0x0f)
+         printf("\n");
+   }
+   printf("\n");
+   return LORA_OK;
+}
+
 lora_status_t lora_init(void)
 {
    lora_status_t ret;
@@ -470,6 +490,7 @@ lora_status_t lora_init(void)
    ret += lora_set_tx_power(17);
 
    ret += lora_idle();
+
    return ret;
 }
 
@@ -488,24 +509,32 @@ lora_status_t lora_send_packet(uint8_t *buf, uint8_t size)
 
    if (LORA_OK != ret)
    {
+      ESP_LOGE(TAG, "LORA_FAILED_SEND_PACKET");
       return LORA_FAILED_SEND_PACKET;
    }
 
    uint8_t loop = 0;
+   uint8_t tmp = 0;
+
+   irq = &tmp;
+
    while (1)
    {
-      uint8_t irq;
-      ret = lora_read_reg(REG_IRQ_FLAGS, &irq);
-      ESP_LOGD(TAG, "lora_read_reg=0x%x", irq);
+      ret = lora_read_reg(REG_IRQ_FLAGS, irq);
+      ESP_LOGI(TAG, "lora_read_reg=0x%x", *irq);
 
-      if ((irq & IRQ_TX_DONE_MASK) == IRQ_TX_DONE_MASK)
+      if ((*irq & IRQ_TX_DONE_MASK) == IRQ_TX_DONE_MASK)
+      {
+         ESP_LOGI(TAG, "IRQ_TX_DONE_MASK");
+         ESP_LOGI(TAG, "Time taken(ms): %d", loop * 200);
          break;
+      }
       loop++;
-      if (loop == 10)
+      if (loop == 2000)
          break;
-      vTaskDelay(2);
+      vTaskDelay(20);
    }
-   if (loop == 10)
+   if (loop == 200)
    {
       __send_packet_lost++;
       ESP_LOGE(TAG, "lora_send_packet Fail");
@@ -616,23 +645,4 @@ void lora_close(void)
    //   __spi = -1;
    //   __cs = -1;
    //   __rst = -1;
-}
-
-lora_status_t lora_dump_registers(void)
-{
-   uint8_t i;
-   printf("00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n");
-   for (i = 0; i < 0x40; i++)
-   {
-      uint8_t reg_val;
-      if (lora_read_reg(i, &reg_val) != LORA_OK)
-      {
-         return LORA_FAIL;
-      }
-      printf("%02X ", reg_val);
-      if ((i & 0x0f) == 0x0f)
-         printf("\n");
-   }
-   printf("\n");
-   return LORA_OK;
 }
