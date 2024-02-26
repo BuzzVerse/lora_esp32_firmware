@@ -1,4 +1,4 @@
-menu "LoRa Configuration"
+menu "LoRa Configurationes"
 
 	config GPIO_RANGE_MAX
 		int
@@ -54,7 +54,7 @@ menu "LoRa Configuration"
 		help
 			Pin Number where the NRST pin of the LoRa module is connected to.
 
-	choice SPI_HOST
+	choice SPI_HOSTa
 		prompt "SPI peripheral that controls this bus"
 		default SPI2_HOST
 		help
@@ -68,6 +68,21 @@ menu "LoRa Configuration"
 			bool "SPI3_HOST"
 			help
 				USE SPI3_HOST. This is also called VSPI_HOST
+	endchoice
+
+	choice LORA_CLASS
+		prompt "Class that lora work in."
+		default LORA_CLASS_A
+		help
+			CLASS A is only a sender.
+		config LORA_CLASS_A
+			bool "Class A"
+			help
+				CLASS A is only a sender.
+		config LORA_CLASS_B
+			bool "Class B"
+			help
+				CLASS B in a sender and reciver.
 	endchoice
 
 endmenu

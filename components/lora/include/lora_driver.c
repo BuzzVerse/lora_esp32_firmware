@@ -530,11 +530,11 @@ lora_status_t lora_send_packet(uint8_t *buf, uint8_t size)
          break;
       }
       loop++;
-      if (loop == 2000)
+      if (loop == 10)
          break;
-      vTaskDelay(20);
+      vTaskDelay(2);
    }
-   if (loop == 200)
+   if (loop == 10)
    {
       __send_packet_lost++;
       ESP_LOGE(TAG, "lora_send_packet Fail");

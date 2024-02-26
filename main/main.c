@@ -19,41 +19,37 @@
 
 #include "lora_driver.h"
 
-#define CONFIG_RECEIVER 1
-// #define CONFIG_SENDER 1
 #define CONFIG_433MHZ 1
 
-#if CONFIG_SENDER
+
+#if CONFIG_LORA_CLASS_A
 void task_tx(void *pvParameters)
 {
+
     ESP_LOGI(pcTaskGetName(NULL), "Start");
-    uint8_t buf[256] = {0};
-    vTaskDelay(pdMS_TO_TICKS(1000)); // Wait for receiver to start
+    uint8_t buf[256] = {0}; 
 
     while (1)
     {
-        buf[0] = 0x00;
-        buf[1] = 0x01;
-        buf[2] = 0x02;
-        buf[3] = 0x03;
-        buf[4] = 0x04;
-        buf[5] = 0x05;
-
-        uint8_t send_len = 6;
-
+        TickType_t nowTick = xTaskGetTickCount();
+        uint8_t send_len = sprintf((char *)buf, "Puszczam szczura %" PRIu32, nowTick);
         lora_send_packet(buf, send_len);
         ESP_LOGI(pcTaskGetName(NULL), "%d byte packet sent...", send_len);
         int lost = lora_packet_lost();
-        if (lost != 0)
+
+        lora_receive(); // put into receive mode
+        bool hasReceived;
+        lora_received(&hasReceived);
+        if(lost != 0)
         {
             ESP_LOGW(pcTaskGetName(NULL), "%d packets lost", lost);
         }
         vTaskDelay(pdMS_TO_TICKS(5000));
-    } // end while
+    }
 }
-#endif // CONFIG_SENDER
+#endif
 
-#if CONFIG_RECEIVER
+#if CONFIG_LORA_CLASS_B
 void task_rx(void *pvParameters)
 {
     ESP_LOGI(pcTaskGetName(NULL), "Start");
@@ -67,29 +63,25 @@ void task_rx(void *pvParameters)
 
         if (hasReceived)
         {
-            int rxLen;
+            u_int8_t rxLen;
             lora_receive_packet(buf, &rxLen, sizeof(buf));
-            for(int i = 0; i < rxLen; i++)
-            {
-                ESP_LOGI(TAG, "0x%x", buf[i]);
-            }
+            ESP_LOGI(pcTaskGetName(NULL), "%d byte packet received:[%.*s]", rxLen, rxLen, buf);
         }
         vTaskDelay(1); // Avoid WatchDog alerts
     }                  // end while
 }
-#endif // CONFIG_RECEIVER
+#endif 
 
 // Main application
 void app_main(void)
 {
-    if (lora_init() != ESP_OK)
-    {
-        ESP_LOGE(pcTaskGetName(NULL), "Does not recognize the module");
-        while (1)
-        {
-            vTaskDelay(1);
-        }
-    }
+    if (lora_init() != ESP_OK) {
+		ESP_LOGE(pcTaskGetName(NULL), "Does not recognize the module");
+		while(1) {
+			vTaskDelay(1);
+		}
+	}
+
 
 #if CONFIG_169MHZ
     ESP_LOGI(pcTaskGetName(NULL), "Frequency is 169MHz");
@@ -120,7 +112,7 @@ void app_main(void)
 
 #if CONFIF_ADVANCED
     cr = CONFIG_CODING_RATE
-        bw = CONFIG_BANDWIDTH;
+    bw = CONFIG_BANDWIDTH;
     sf = CONFIG_SF_RATE;
 #endif
 
@@ -132,6 +124,7 @@ void app_main(void)
     lora_set_bandwidth(bw);
     // lora_set_bandwidth(CONFIG_BANDWIDTH);
     // int bw = lora_get_bandwidth();
+
     ESP_LOGI(pcTaskGetName(NULL), "bandwidth=%d", bw);
 
     lora_set_spreading_factor(sf);
@@ -141,28 +134,11 @@ void app_main(void)
 
     lora_dump_registers();
 
-#if CONFIG_SENDER
+#if CONFIG_LORA_CLASS_A
     xTaskCreate(&task_tx, "TX", 1024 * 3, NULL, 5, NULL);
 #endif
-#if CONFIG_RECEIVER
+#if CONFIG_LORA_CLASS_B
     xTaskCreate(&task_rx, "RX", 1024 * 3, NULL, 5, NULL);
 #endif
 
-    // TaskHandle_t main_task_handle = NULL;
-    // int x_task_returned = xTaskCreate(&main_task, "main_task", 2048, NULL, 4, &main_task_handle);
-
-    // ESP_LOGI(TAG_BME280, "Hello World0");
-
-    // if (x_task_returned != pdPASS)
-    // {
-    //     ESP_LOGE(TAG_BME280, "Error with creating the task. Returned with error code: %d", x_task_returned);
-    //     vTaskDelete(main_task_handle);
-    //     esp_restart();
-    // }
-
-    // for (;;)
-    // {
-    //     vTaskDelay(pdMS_TO_TICKS(1000));
-    //     ESP_LOGI(TAG_MAIN, "Free heap: %" PRIu32 "", esp_get_free_heap_size());
-    // }
 }
