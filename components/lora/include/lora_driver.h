@@ -228,7 +228,7 @@ esp_err_t lora_send_packet(uint8_t *buf, int size);
  * @param packet Pointer to store packet status.
  * @return esp_err_t Result of receive operation.
  */
-esp_err_t lora_receive_packet(uint8_t *buf, int *len, int size);
+esp_err_t lora_receive_packet(uint8_t *buf, uint8_t *len, int size);
 
 /**
  * @brief Check if there is data to read (packet received).
