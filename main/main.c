@@ -9,37 +9,72 @@
 #include "lora_driver.h"
 
 #define CONFIG_433MHZ 1
-static uint8_t buf[3];
-static uint8_t rx_buf[256];
+static uint8_t tx_buf[24];
+static uint8_t rx_buf[24];
+
+typedef union
+{
+    double value;
+    uint8_t serialized[8];
+
+} serialized_data_t;
+
+typedef struct
+{
+    serialized_data_t temperature;
+    serialized_data_t humidity;
+    serialized_data_t pressure;
+
+} bme280_data_t;
+
+static bme280_data_t data;
 
 #if CONFIG_LORA_TRANSMITTER
 void task_tx(void *pvParameters)
 {
-    double temperature = 0, pressure = 0, humidity = 0;
-
+    double temp = 0, pres = 0, hum = 0;
     ESP_LOGI(pcTaskGetName(NULL), "Start");
+
     vTaskDelay(pdMS_TO_TICKS(5000));
 
     while (1)
     {
-        bme280_read_temperature(&temperature);
-        bme280_read_pressure(&pressure);
-        bme280_read_humidity(&humidity);
+        bme280_read_temperature(&temp);
+        printf("temp: %f", temp);
+        vTaskDelay(100);
+        bme280_read_pressure(&pres);
+        printf("pres: %f", pres);
+        vTaskDelay(100);
+        bme280_read_humidity(&hum);
+        printf("hum: %f", hum);
+        vTaskDelay(100);
 
-        ESP_LOGI(pcTaskGetName(NULL), "Temperature: %.2f C", temperature);
-        ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa", pressure / 100);
-        ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %%", humidity);
+        data.temperature.value = temp;
+        data.pressure.value = pres;
+        data.humidity.value = hum;
 
-        buf[0] = temperature;
-        buf[1] = pressure / 100;
-        buf[2] = humidity;
+        ESP_LOGI(pcTaskGetName(NULL), "Temperature: %.2f C", data.temperature.value);
+        ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa", data.pressure.value / 100);
+        ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %%", data.humidity.value);
 
-        lora_send_packet(buf, 3);
+        for (int i = 0; i < 8; i++)
+        {
+            tx_buf[i] = data.temperature.serialized[i];
+        }
 
-        ESP_LOGI(pcTaskGetName(NULL), "before %d %d %d", buf[0], buf[1], buf[2]);
-        ESP_LOGI(pcTaskGetName(NULL), "%d byte packet sent...", 3);
+        for (int i = 8; i < 16; i++)
+        {
+            tx_buf[i] = data.pressure.serialized[i - 8];
+        }
+
+        for (int i = 16; i < 24; i++)
+        {
+            tx_buf[i] = data.humidity.serialized[i - 16];
+        }
+
+        lora_send_packet(tx_buf, 24);
+
         int lost = lora_packet_lost();
-        ESP_LOGI(pcTaskGetName(NULL), "after %d %d %d", buf[0], buf[1], buf[2]);
 
         if (lost != 0)
         {
@@ -54,6 +89,7 @@ void task_tx(void *pvParameters)
 void task_rx(void *pvParameters)
 {
     ESP_LOGI(pcTaskGetName(NULL), "Start");
+    bme280_data_t data;
 
     while (1)
     {
@@ -65,7 +101,28 @@ void task_rx(void *pvParameters)
         {
             uint8_t rxLen = 0;
             lora_receive_packet(rx_buf, &rxLen, sizeof(rx_buf));
-            ESP_LOGI(pcTaskGetName(NULL), "%u byte packet received:[ %u %u %u ]", rxLen, rx_buf[0], rx_buf[1], rx_buf[2]);
+
+            for (int i = 0; i < 24; i++)
+            {
+                printf("%d: 0x%x \n", i, rx_buf[i]);
+            }
+
+            for (int i = 0; i < 8; i++)
+            {
+                data.temperature.serialized[i] = rx_buf[i];
+            }
+
+            for (int i = 8; i < 16; i++)
+            {
+                data.pressure.serialized[i - 8] = rx_buf[i];
+            }
+
+            for (int i = 16; i < 24; i++)
+            {
+                data.humidity.serialized[i - 16] = rx_buf[i];
+            }
+
+            ESP_LOGI(pcTaskGetName(NULL), "Temp: %f, Pres: %f %% Hum: %f", data.temperature.value, data.pressure.value, data.humidity.value);
         }
         vTaskDelay(1); // Avoid WatchDog alerts
     }                  // end while
