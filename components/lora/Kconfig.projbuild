@@ -71,18 +71,18 @@ menu "LoRa Configurationes"
 	endchoice
 
 	choice LORA_CLASS
-		prompt "Class that lora work in."
-		default LORA_CLASS_A
+		prompt "Class that lora works in."
+		default LORA_RECEIVER
 		help
-			CLASS A is only a sender.
-		config LORA_CLASS_A
-			bool "Class A"
+			Receiver puts the device into receiving mode.
+		config LORA_RECEIVER
+			bool "Receiver"
 			help
-				CLASS A is only a sender.
-		config LORA_CLASS_B
-			bool "Class B"
+				Receiver puts the device into receiving mode.
+		config LORA_TRANSMITTER
+			bool "Transmitter"
 			help
-				CLASS B in a sender and reciver.
+				Receiver puts the device into transmitting mode.
 	endchoice
 
 endmenu

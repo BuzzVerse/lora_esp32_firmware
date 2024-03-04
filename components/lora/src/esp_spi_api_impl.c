@@ -62,12 +62,11 @@ spi_status_t spi_write(uint8_t reg, uint8_t val)
         .tx_buffer = out,
         .rx_buffer = in};
 
+    if (ESP_OK == spi_device_transmit(__spi, &t))
+    {
+        return SPI_OK;
+    }
 
-    if (ESP_OK == spi_device_transmit(__spi, &t)){
-            return SPI_OK;
-        }
-        
-   
     return SPI_ERROR;
 }
 
