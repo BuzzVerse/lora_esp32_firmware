@@ -526,15 +526,15 @@ lora_status_t lora_send_packet(uint8_t *buf, uint8_t size)
       if ((*irq & IRQ_TX_DONE_MASK) == IRQ_TX_DONE_MASK)
       {
          ESP_LOGI(TAG, "IRQ_TX_DONE_MASK");
-         ESP_LOGI(TAG, "Time taken(ms): %d", loop * 2000);
+         ESP_LOGI(TAG, "Time taken(ms): %d", loop * 2);
          break;
       }
       loop++;
-      if (loop == 100)
+      if (loop == 10)
          break;
-      vTaskDelay(2000);
+      vTaskDelay(2);
    }
-   if (loop == 100)
+   if (loop == 10)
    {
       __send_packet_lost++;
       ESP_LOGE(TAG, "lora_send_packet Fail");

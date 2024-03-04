@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <string.h>
-
+#include "bme280.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
@@ -18,6 +18,8 @@ void task_tx(void *pvParameters)
     double temperature = 0, pressure = 0, humidity = 0;
 
     ESP_LOGI(pcTaskGetName(NULL), "Start");
+    vTaskDelay(pdMS_TO_TICKS(5000));
+
 
     while (1)
     {
@@ -26,7 +28,7 @@ void task_tx(void *pvParameters)
         bme280_read_humidity(&humidity);
 
         ESP_LOGI(pcTaskGetName(NULL), "Temperature: %.2f C", temperature);
-        ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa", pressure);
+        ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa", pressure/100);
         ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %%", humidity);
 
         buf[0] = temperature * 100;
@@ -95,7 +97,7 @@ void app_main(void)
 
     if (ESP_OK != bme_rc)
     {
-        ESP_LOGE(TAG_MAIN, "BME280 settings failed");
+        ESP_LOGE("BME", "BME280 settings failed");
         while (1)
         {
             vTaskDelay(1);
