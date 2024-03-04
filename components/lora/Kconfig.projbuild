@@ -1,4 +1,4 @@
-menu "LoRa Configurationes"
+menu "LoRa Configuration"
 
 	config GPIO_RANGE_MAX
 		int
