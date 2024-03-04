@@ -20,7 +20,6 @@ void task_tx(void *pvParameters)
     ESP_LOGI(pcTaskGetName(NULL), "Start");
     vTaskDelay(pdMS_TO_TICKS(5000));
 
-
     while (1)
     {
         bme280_read_temperature(&temperature);
@@ -28,17 +27,19 @@ void task_tx(void *pvParameters)
         bme280_read_humidity(&humidity);
 
         ESP_LOGI(pcTaskGetName(NULL), "Temperature: %.2f C", temperature);
-        ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa", pressure/100);
+        ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa", pressure / 100);
         ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %%", humidity);
 
-        buf[0] = temperature * 100;
+        buf[0] = temperature;
         buf[1] = pressure / 100;
-        buf[2] = humidity * 100;
+        buf[2] = humidity;
 
         lora_send_packet(buf, 3);
 
-        ESP_LOGI(pcTaskGetName(NULL), "%d byte packet sent...", 4);
+        ESP_LOGI(pcTaskGetName(NULL), "before %d %d %d", buf[0], buf[1], buf[2]);
+        ESP_LOGI(pcTaskGetName(NULL), "%d byte packet sent...", 3);
         int lost = lora_packet_lost();
+        ESP_LOGI(pcTaskGetName(NULL), "after %d %d %d", buf[0], buf[1], buf[2]);
 
         if (lost != 0)
         {
@@ -64,7 +65,7 @@ void task_rx(void *pvParameters)
         {
             uint8_t rxLen = 0;
             lora_receive_packet(rx_buf, &rxLen, sizeof(rx_buf));
-            ESP_LOGI(pcTaskGetName(NULL), "%u byte packet received:[ %u %u %u %u ]", rxLen, rx_buf[0], rx_buf[1], rx_buf[2], rx_buf[3]);
+            ESP_LOGI(pcTaskGetName(NULL), "%u byte packet received:[ %u %u %u ]", rxLen, rx_buf[0], rx_buf[1], rx_buf[2]);
         }
         vTaskDelay(1); // Avoid WatchDog alerts
     }                  // end while
@@ -74,7 +75,7 @@ void task_rx(void *pvParameters)
 // Main application
 void app_main(void)
 {
-    if (ESP_OK != lora_init() || ESP_OK != bme280_init_driver(CONFIG_BME280_I2C_ADDRESS))
+    if (ESP_OK != lora_init())
     {
         ESP_LOGE(pcTaskGetName(NULL), "Does not recognize the module");
         while (1)
@@ -83,7 +84,10 @@ void app_main(void)
         }
     }
 
+#if CONFIG_LORA_TRANSMITTER
+
     esp_err_t bme_rc = ESP_OK;
+    bme_rc += bme280_init_driver(CONFIG_BME280_I2C_ADDRESS);
 
     bme_rc += bme280_set_oversamp(
         BME280_OVERSAMP_16X,
@@ -103,6 +107,7 @@ void app_main(void)
             vTaskDelay(1);
         }
     }
+#endif
 
     ESP_LOGI(pcTaskGetName(NULL), "Frequency is 433MHz");
     lora_set_frequency(433e6); // 433MHz
