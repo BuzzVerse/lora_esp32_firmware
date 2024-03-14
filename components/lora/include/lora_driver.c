@@ -1,15 +1,17 @@
 #include <string.h>
+#include <stdio.h>
+#include <stdbool.h>
 #include "lora_driver_defs.h"
 #include "spi_api.h"
 
-// to delete
-#include "driver/spi_master.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_system.h"
-#include "esp_log.h"
-#include "driver/spi_master.h"
-#include "driver/gpio.h"
+// // to delete
+// #include "driver/spi_master.h"
+// #include "freertos/FreeRTOS.h"
+// #include "freertos/task.h"
+// #include "esp_system.h"
+// #include "esp_log.h"
+// #include "driver/spi_master.h"
+// #include "driver/gpio.h"
 
 typedef enum
 {
@@ -81,6 +83,7 @@ lora_status_t lora_read_reg_buffer(uint8_t reg, uint8_t *val, uint8_t len)
 
 // lora_status_t gpio_set_level(uint8_t gpio_num, uint8_t level)
 // {
+      
 // }
 
 // lora_status_t vTaskDelay(uint8_t delay)
@@ -242,7 +245,7 @@ lora_status_t lora_set_dio_mapping(uint8_t dio, uint8_t mode)
       }
 
       ret += lora_write_reg(REG_DIO_MAPPING_1, _mode);
-      ESP_LOGD(TAG, "REG_DIO_MAPPING_1=0x%02x", _mode);
+      printf("REG_DIO_MAPPING_1=0x%02x", _mode);
       return ret;
    }
    else if (dio < 6)
@@ -261,7 +264,7 @@ lora_status_t lora_set_dio_mapping(uint8_t dio, uint8_t mode)
       }
 
       ret += lora_write_reg(REG_DIO_MAPPING_2, _mode);
-      ESP_LOGD(TAG, "REG_DIO_MAPPING_2=0x%02x", _mode);
+      printf("REG_DIO_MAPPING_2=0x%02x", _mode);
       return ret;
    }
 
@@ -281,7 +284,7 @@ lora_status_t lora_get_dio_mapping(uint8_t dio, uint8_t *mapping)
          return ret;
       }
 
-      ESP_LOGD(TAG, "REG_DIO_MAPPING_1=0x%02x", _mode);
+      printf("REG_DIO_MAPPING_1=0x%02x", _mode);
 
       if (dio == 0)
       {
@@ -310,7 +313,7 @@ lora_status_t lora_get_dio_mapping(uint8_t dio, uint8_t *mapping)
          return ret;
       }
 
-      ESP_LOGD(TAG, "REG_DIO_MAPPING_2=0x%02x", _mode);
+      printf("REG_DIO_MAPPING_2=0x%02x", _mode);
 
       if (dio == 4)
       {
@@ -470,12 +473,12 @@ lora_status_t lora_init(void)
    while (i++ < TIMEOUT_RESET)
    {
       lora_read_reg(REG_VERSION, &version);
-      ESP_LOGD(TAG, "version=0x%02x", version);
+      printf("version=0x%02x", version);
       if (version == 0x12)
          break;
       vTaskDelay(2);
    }
-   ESP_LOGD(TAG, "i=%d, TIMEOUT_RESET=%d", i, TIMEOUT_RESET);
+   printf("i=%d, TIMEOUT_RESET=%d", i, TIMEOUT_RESET);
 
    if (i == TIMEOUT_RESET + 1)
       return 0;
@@ -509,7 +512,7 @@ lora_status_t lora_send_packet(uint8_t *buf, uint8_t size)
 
    if (LORA_OK != ret)
    {
-      ESP_LOGE(TAG, "LORA_FAILED_SEND_PACKET");
+      printf("LORA_FAILED_SEND_PACKET");
       return LORA_FAILED_SEND_PACKET;
    }
 
@@ -521,12 +524,12 @@ lora_status_t lora_send_packet(uint8_t *buf, uint8_t size)
    while (1)
    {
       ret = lora_read_reg(REG_IRQ_FLAGS, irq);
-      ESP_LOGI(TAG, "lora_read_reg=0x%x", *irq);
+      printf("lora_read_reg=0x%x", *irq);
 
       if ((*irq & IRQ_TX_DONE_MASK) == IRQ_TX_DONE_MASK)
       {
-         ESP_LOGI(TAG, "IRQ_TX_DONE_MASK");
-         ESP_LOGI(TAG, "Time taken(ms): %d", loop * 2);
+         printf("IRQ_TX_DONE_MASK");
+         printf("Time taken(ms): %d", loop * 2);
          break;
       }
       loop++;
@@ -537,7 +540,7 @@ lora_status_t lora_send_packet(uint8_t *buf, uint8_t size)
    if (loop == 10)
    {
       __send_packet_lost++;
-      ESP_LOGE(TAG, "lora_send_packet Fail");
+      printf("lora_send_packet Fail");
    }
 
    return lora_write_reg(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK);
