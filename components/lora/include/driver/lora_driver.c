@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "lora_driver_defs.h"
+#include "lora_api_config.h"
 #include "spi_api.h"
 
 // // to delete
@@ -32,6 +33,9 @@ static uint8_t *irq;
 lora_status_t lora_write_reg(uint8_t reg, uint8_t val)
 {
    spi_status_t status = spi_write(reg, val);
+
+   printf("0x%02x : 0x%02x\n", reg, val);
+
    if (SPI_OK == status)
    {
       return LORA_OK;
@@ -92,9 +96,9 @@ lora_status_t lora_read_reg_buffer(uint8_t reg, uint8_t *val, uint8_t len)
 
 void lora_reset(void)
 {
-   gpio_set_level(CONFIG_RST_GPIO, 0);
+   gpio_set_level(LORA_API_CONFIG_RST_GPIO, 0);
    vTaskDelay(pdMS_TO_TICKS(1));
-   gpio_set_level(CONFIG_RST_GPIO, 1);
+   gpio_set_level(LORA_API_CONFIG_RST_GPIO, 1);
    vTaskDelay(pdMS_TO_TICKS(10));
 }
 

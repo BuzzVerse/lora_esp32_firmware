@@ -60,14 +60,6 @@
 
 #define TIMEOUT_RESET                  100
 
-// SPI Stuff
-#if CONFIG_SPI2_HOST
-#define HOST_ID SPI2_HOST
-#elif CONFIG_SPI3_HOST
-#define HOST_ID SPI3_HOST
-#endif
-
-
 #define TAG "LORA_DRIVER"
 
 #endif // LORA_DRIVER_DEFS_H
