@@ -1,4 +1,4 @@
-#include "spi_api.h"
+#include "api/driver_api.h"
 #include "driver/spi_master.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -9,14 +9,7 @@
 
 static spi_device_handle_t __spi;
 
-// SPI Stuff
-#if CONFIG_SPI2_HOST
-#define HOST_ID SPI2_HOST
-#elif CONFIG_SPI3_HOST
-#define HOST_ID SPI3_HOST
-#endif
-
-spi_status_t spi_init(void)
+api_status_t spi_init(void)
 {
     esp_err_t ret;
 
@@ -34,7 +27,7 @@ spi_status_t spi_init(void)
         .quadhd_io_num = -1,
         .max_transfer_sz = 0};
 
-    ret += spi_bus_initialize(HOST_ID, &bus, SPI_DMA_CH_AUTO);
+    ret += spi_bus_initialize(SPI2_HOST, &bus, SPI_DMA_CH_AUTO);
 
     spi_device_interface_config_t dev = {
         .clock_speed_hz = 9000000,
@@ -43,15 +36,15 @@ spi_status_t spi_init(void)
         .queue_size = 7,
         .flags = 0,
         .pre_cb = NULL};
-    ret += spi_bus_add_device(HOST_ID, &dev, &__spi);
+    ret += spi_bus_add_device(SPI2_HOST, &dev, &__spi);
 
     if (ESP_OK == ret)
-        return SPI_OK;
+        return API_OK;
     else
-        return SPI_ERROR;
+        return API_SPI_ERROR;
 }
 
-spi_status_t spi_write(uint8_t reg, uint8_t val)
+api_status_t spi_write(uint8_t reg, uint8_t val)
 {
     uint8_t out[2] = {0x80 | reg, val};
     uint8_t in[2];
@@ -64,13 +57,13 @@ spi_status_t spi_write(uint8_t reg, uint8_t val)
 
     if (ESP_OK == spi_device_transmit(__spi, &t))
     {
-        return SPI_OK;
+        return API_OK;
     }
 
-    return SPI_ERROR;
+    return API_SPI_ERROR;
 }
 
-spi_status_t spi_write_buf(uint8_t reg, uint8_t *val, uint16_t len)
+api_status_t spi_write_buf(uint8_t reg, uint8_t *val, uint16_t len)
 {
     uint8_t *out;
     esp_err_t ret;
@@ -92,15 +85,15 @@ spi_status_t spi_write_buf(uint8_t reg, uint8_t *val, uint16_t len)
     free(out);
     if (ESP_OK == ret)
     {
-        return SPI_OK;
+        return API_OK;
     }
     else
     {
-        return SPI_ERROR;
+        return API_SPI_ERROR;
     }
 }
 
-spi_status_t spi_read(uint8_t reg, uint8_t *val)
+api_status_t spi_read(uint8_t reg, uint8_t *val)
 {
     uint8_t out[2] = {reg, 0xff};
     uint8_t in[2];
@@ -117,15 +110,15 @@ spi_status_t spi_read(uint8_t reg, uint8_t *val)
 
     if (ESP_OK == ret)
     {
-        return SPI_OK;
+        return API_OK;
     }
     else
     {
-        return SPI_ERROR;
+        return API_SPI_ERROR;
     }
 }
 
-spi_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
+api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
 {
     uint8_t *out;
     uint8_t *in;
@@ -158,10 +151,24 @@ spi_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
 
     if (ESP_OK == ret)
     {
-        return SPI_OK;
+        return API_OK;
     }
     else
     {
-        return SPI_ERROR;
+        return API_SPI_ERROR;
     }
+}
+
+api_status_t lora_delay(uint32_t ms)
+{
+    vTaskDelay(ms / portTICK_PERIOD_MS);
+    return API_OK;
+}
+
+void lora_reset(void)
+{
+    gpio_set_level(CONFIG_RST_GPIO, 0);
+    lora_delay(1);
+    gpio_set_level(CONFIG_RST_GPIO, 1);
+    lora_delay(10);
 }

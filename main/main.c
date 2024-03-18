@@ -16,7 +16,7 @@
 #include "lwip/dns.h"
 #include "lwip/netdb.h"
 #include "bme280.h"
-#include "lora_driver.h"
+#include "driver/lora_driver.h"
 #include "low_power_mode.h"
 #include "protocol_examples_common.h"
 

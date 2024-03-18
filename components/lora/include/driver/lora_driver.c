@@ -2,17 +2,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "lora_driver_defs.h"
-#include "lora_api_config.h"
-#include "spi_api.h"
-
-// // to delete
-// #include "driver/spi_master.h"
-// #include "freertos/FreeRTOS.h"
-// #include "freertos/task.h"
-// #include "esp_system.h"
-// #include "esp_log.h"
-// #include "driver/spi_master.h"
-// #include "driver/gpio.h"
+#include "api/lora_api_config.h"
+#include "api/driver_api.h"
 
 typedef enum
 {
@@ -23,6 +14,7 @@ typedef enum
    LORA_FAILED_SPI_READ,
    LORA_FAILED_SPI_READ_BUF,
    LORA_FAILED_SEND_PACKET,
+   LORA_DELAY_FAIL
 } lora_status_t;
 
 static uint8_t __implicit;
@@ -32,11 +24,11 @@ static uint8_t *irq;
 
 lora_status_t lora_write_reg(uint8_t reg, uint8_t val)
 {
-   spi_status_t status = spi_write(reg, val);
+   api_status_t status = spi_write(reg, val);
 
    printf("0x%02x : 0x%02x\n", reg, val);
 
-   if (SPI_OK == status)
+   if (API_OK == status)
    {
       return LORA_OK;
    }
@@ -48,8 +40,8 @@ lora_status_t lora_write_reg(uint8_t reg, uint8_t val)
 
 lora_status_t lora_write_reg_buffer(uint8_t reg, uint8_t *val, uint8_t len)
 {
-   spi_status_t status = spi_write_buf(reg, val, len);
-   if (SPI_OK == status)
+   api_status_t status = spi_write_buf(reg, val, len);
+   if (API_OK == status)
    {
       return LORA_OK;
    }
@@ -61,8 +53,8 @@ lora_status_t lora_write_reg_buffer(uint8_t reg, uint8_t *val, uint8_t len)
 
 lora_status_t lora_read_reg(uint8_t reg, uint8_t *val)
 {
-   spi_status_t status = spi_read(reg, val);
-   if (SPI_OK == status)
+   api_status_t status = spi_read(reg, val);
+   if (API_OK == status)
    {
       return LORA_OK;
    }
@@ -74,8 +66,8 @@ lora_status_t lora_read_reg(uint8_t reg, uint8_t *val)
 
 lora_status_t lora_read_reg_buffer(uint8_t reg, uint8_t *val, uint8_t len)
 {
-   spi_status_t status = spi_read_buf(reg, val, len);
-   if (SPI_OK == status)
+   api_status_t status = spi_read_buf(reg, val, len);
+   if (API_OK == status)
    {
       return LORA_OK;
    }
@@ -85,21 +77,20 @@ lora_status_t lora_read_reg_buffer(uint8_t reg, uint8_t *val, uint8_t len)
    }
 }
 
-// lora_status_t gpio_set_level(uint8_t gpio_num, uint8_t level)
-// {
-      
-// }
-
-// lora_status_t vTaskDelay(uint8_t delay)
-// {
-// }
-
-void lora_reset(void)
+lora_status_t lora_driver_delay(uint32_t delay)
 {
-   gpio_set_level(LORA_API_CONFIG_RST_GPIO, 0);
-   vTaskDelay(pdMS_TO_TICKS(1));
-   gpio_set_level(LORA_API_CONFIG_RST_GPIO, 1);
-   vTaskDelay(pdMS_TO_TICKS(10));
+   api_status_t res = API_OK;
+
+   res += lora_delay(delay);
+   
+   if (API_OK == res)
+   {
+      return LORA_OK;
+   }
+   else
+   {
+      return LORA_DELAY_FAIL;
+   }
 }
 
 lora_status_t lora_explicit_header_mode(void)
@@ -480,7 +471,7 @@ lora_status_t lora_init(void)
       printf("version=0x%02x", version);
       if (version == 0x12)
          break;
-      vTaskDelay(2);
+      lora_driver_delay(2);
    }
    printf("i=%d, TIMEOUT_RESET=%d", i, TIMEOUT_RESET);
 
@@ -539,7 +530,7 @@ lora_status_t lora_send_packet(uint8_t *buf, uint8_t size)
       loop++;
       if (loop == 10)
          break;
-      vTaskDelay(2);
+      lora_driver_delay(2);
    }
    if (loop == 10)
    {
