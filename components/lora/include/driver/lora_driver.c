@@ -9,6 +9,7 @@ typedef enum
 {
    LORA_OK,
    LORA_FAIL,
+   LORA_FAILED_INIT,
    LORA_FAILED_SPI_WRITE,
    LORA_FAILED_SPI_WRITE_BUF,
    LORA_FAILED_SPI_READ,
@@ -26,7 +27,7 @@ lora_status_t lora_write_reg(uint8_t reg, uint8_t val)
 {
    api_status_t status = spi_write(reg, val);
 
-   printf("0x%02x : 0x%02x\n", reg, val);
+   // printf("0x%02x : 0x%02x\n", reg, val);
 
    if (API_OK == status)
    {
@@ -74,22 +75,6 @@ lora_status_t lora_read_reg_buffer(uint8_t reg, uint8_t *val, uint8_t len)
    else
    {
       return LORA_FAILED_SPI_READ_BUF;
-   }
-}
-
-lora_status_t lora_driver_delay(uint32_t delay)
-{
-   api_status_t res = API_OK;
-
-   res += lora_delay(delay);
-   
-   if (API_OK == res)
-   {
-      return LORA_OK;
-   }
-   else
-   {
-      return LORA_DELAY_FAIL;
    }
 }
 
@@ -468,15 +453,15 @@ lora_status_t lora_init(void)
    while (i++ < TIMEOUT_RESET)
    {
       lora_read_reg(REG_VERSION, &version);
-      printf("version=0x%02x", version);
+      printf("version=0x%02x\n", version);
       if (version == 0x12)
          break;
-      lora_driver_delay(2);
+      lora_delay(2);
    }
    printf("i=%d, TIMEOUT_RESET=%d", i, TIMEOUT_RESET);
 
    if (i == TIMEOUT_RESET + 1)
-      return 0;
+      return LORA_FAILED_INIT;
 
    ret = lora_sleep();
    ret += lora_write_reg(REG_FIFO_RX_BASE_ADDR, 0);
@@ -519,23 +504,23 @@ lora_status_t lora_send_packet(uint8_t *buf, uint8_t size)
    while (1)
    {
       ret = lora_read_reg(REG_IRQ_FLAGS, irq);
-      printf("lora_read_reg=0x%x", *irq);
+      printf("lora_read_reg=0x%x\n", *irq);
 
       if ((*irq & IRQ_TX_DONE_MASK) == IRQ_TX_DONE_MASK)
       {
-         printf("IRQ_TX_DONE_MASK");
-         printf("Time taken(ms): %d", loop * 2);
+         printf("IRQ_TX_DONE_MASK\n");
+         printf("Time taken(ms): %d\n", loop * 2);
          break;
       }
       loop++;
       if (loop == 10)
          break;
-      lora_driver_delay(2);
+      lora_delay(2);
    }
    if (loop == 10)
    {
       __send_packet_lost++;
-      printf("lora_send_packet Fail");
+      printf("lora_send_packet Fail\n");
    }
 
    return lora_write_reg(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK);

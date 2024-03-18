@@ -19,7 +19,7 @@ api_status_t spi_read(uint8_t reg, uint8_t *val);
 
 api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len);
 
-api_status_t lora_delay(uint32_t ms);
+void lora_delay(uint32_t ticks);
 
 void lora_reset(void);
 
