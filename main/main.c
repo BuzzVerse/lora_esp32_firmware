@@ -126,7 +126,7 @@ static void initialize_mqtt(void)
         // YOU NEED TO CHANGE THESE
         // TODO: Implement menuconfig variables for these
         .credentials.username = "admin",
-        .credentials.authentication.password = "***REMOVED***",
+        .credentials.authentication.password = "",
     };
     mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
     esp_mqtt_client_start(mqtt_client);
