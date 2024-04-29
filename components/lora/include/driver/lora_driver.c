@@ -5,19 +5,6 @@
 #include "api/lora_api_config.h"
 #include "api/driver_api.h"
 
-typedef enum
-{
-   LORA_OK,
-   LORA_FAIL,
-   LORA_FAILED_INIT,
-   LORA_FAILED_SPI_WRITE,
-   LORA_FAILED_SPI_WRITE_BUF,
-   LORA_FAILED_SPI_READ,
-   LORA_FAILED_SPI_READ_BUF,
-   LORA_FAILED_SEND_PACKET,
-   LORA_DELAY_FAIL
-} lora_status_t;
-
 static uint8_t __implicit;
 static long __frequency;
 static uint8_t __send_packet_lost = 0;
@@ -26,8 +13,6 @@ static uint8_t *irq;
 lora_status_t lora_write_reg(uint8_t reg, uint8_t val)
 {
    api_status_t status = spi_write(reg, val);
-
-   // printf("0x%02x : 0x%02x\n", reg, val);
 
    if (API_OK == status)
    {
@@ -509,15 +494,15 @@ lora_status_t lora_send_packet(uint8_t *buf, uint8_t size)
       if ((*irq & IRQ_TX_DONE_MASK) == IRQ_TX_DONE_MASK)
       {
          printf("IRQ_TX_DONE_MASK\n");
-         printf("Time taken(ms): %d\n", loop * 2);
+         printf("Time taken(ms): %d\n", loop * 5);
          break;
       }
       loop++;
-      if (loop == 10)
+      if (loop == 255)
          break;
-      lora_delay(2);
+      lora_delay(5);
    }
-   if (loop == 10)
+   if (loop == 255)
    {
       __send_packet_lost++;
       printf("lora_send_packet Fail\n");

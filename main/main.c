@@ -68,19 +68,19 @@ void app_main(void)
         return;
     }
 
-    lora_set_frequency(433e6); // 433MHz
+    lora_set_frequency(433e6);
     lora_enable_crc();
-    lora_set_coding_rate(1);
-    lora_set_bandwidth(7);
-    lora_set_spreading_factor(7);
+    lora_set_coding_rate(8);
+    lora_set_bandwidth(4);
+    lora_set_spreading_factor(12);
     lora_dump_registers();
 
 #if CONFIG_LORA_TRANSMITTER
-    initialize_sensors();
+    // initialize_sensors();
     xTaskCreate(&task_tx, "TX", 1024 * 3, NULL, 5, NULL);
 #endif
 #if CONFIG_LORA_RECEIVER
-    initialize_mqtt();
+    // initialize_mqtt();
     xTaskCreate(&task_rx, "RX", 1024 * 3, NULL, 5, NULL);
 #endif
 }
@@ -137,23 +137,39 @@ void task_tx(void *pvParameters)
 {
     ESP_LOGI(pcTaskGetName(NULL), "Start TX");
     vTaskDelay(100 / portTICK_PERIOD_MS);
+
+    uint8_t tx_buf[1] = {0};
+
     while (1)
     {
-        uint8_t tx_buf[24];
 
-        bme280_read_temperature(&data.temperature.value);
-        bme280_read_pressure(&data.pressure.value);
-        bme280_read_humidity(&data.humidity.value);
+        // bme280_read_temperature(&data.temperature.value);
+        // bme280_read_pressure(&data.pressure.value);
+        // bme280_read_humidity(&data.humidity.value);
 
-        ESP_LOGI(pcTaskGetName(NULL), "Temperature: %.2f C", data.temperature.value);
-        ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa", data.pressure.value / 100);
-        ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %%", data.humidity.value);
+        // ESP_LOGI(pcTaskGetName(NULL), "Temperature: %.2f C", data.temperature.value);
+        // ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa", data.pressure.value / 100);
+        // ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %%", data.humidity.value);
 
-        memcpy(tx_buf, data.temperature.serialized, 8);
-        memcpy(tx_buf + 8, data.pressure.serialized, 8);
-        memcpy(tx_buf + 16, data.humidity.serialized, 8);
+        // memcpy(tx_buf, data.temperature.serialized, 8);
+        // memcpy(tx_buf + 8, data.pressure.serialized, 8);
+        // memcpy(tx_buf + 16, data.humidity.serialized, 8);
 
-        lora_send_packet(tx_buf, 24);
+        // LOGOWANIE danych bufora
+        // @TODO ZROBIC PO STRONIE ODBIORNIKA
+        // @TODO DAC ZNANE DANE DO BUFORA NP -1 I SPRAWDZIC CZY TO SAMO JEST PO STRONIE ODBIRNIKA
+
+        // ESP_LOGI(TAG, "TX BUF:");
+        // for (int i = 0; i < 24; i++)
+        // {
+        //     ESP_LOGI(TAG, "0x%x ", tx_buf[i]);
+        // }
+
+
+        lora_send_packet(tx_buf, 1);
+
+        ESP_LOGI(pcTaskGetName(NULL), "Packet sent: 0x%x", tx_buf[0]);
+        tx_buf[0]++;
 
         int lost = lora_packet_lost();
 
@@ -180,35 +196,37 @@ void task_rx(void *pvParameters)
 
         if (hasReceived)
         {
-            uint8_t rx_buf[64];
+            uint8_t rx_buf[1] = {0};
             uint8_t rxLen = 0;
             lora_receive_packet(rx_buf, &rxLen, sizeof(rx_buf));
 
-            // Deserialize the byte array into a struct
-            memcpy(data.temperature.serialized, rx_buf, 8);
-            memcpy(data.pressure.serialized, rx_buf + 8, 8);
-            memcpy(data.humidity.serialized, rx_buf + 16, 8);
+            ESP_LOGI(pcTaskGetName(NULL), "Received: 0x%x", rx_buf[0]);
 
-            ESP_LOGI(pcTaskGetName(NULL), "Received Temp: %f, Pres: %f, Hum: %f",
-                     data.temperature.value, data.pressure.value, data.humidity.value);
+            // // Deserialize the byte array into a struct
+            // memcpy(data.temperature.serialized, rx_buf, 8);
+            // memcpy(data.pressure.serialized, rx_buf + 8, 8);
+            // memcpy(data.humidity.serialized, rx_buf + 16, 8);
 
-            // Format the message to be sent over MQTT
-            char msg[100];
-            sprintf(msg, "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
-                    data.temperature.value, data.pressure.value / 100, data.humidity.value); // Adjusting pressure to hPa
+            // ESP_LOGI(pcTaskGetName(NULL), "Received Temp: %f, Pres: %f, Hum: %f",
+            //          data.temperature.value, data.pressure.value, data.humidity.value);
 
-            ESP_LOGI(pcTaskGetName(NULL), "Publishing message: %s", msg);
+            // // Format the message to be sent over MQTT
+            // char msg[100];
+            // sprintf(msg, "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
+            //         data.temperature.value, data.pressure.value / 100, data.humidity.value); // Adjusting pressure to hPa
 
-            // Publish the formatted message over MQTT
-            int msg_id = esp_mqtt_client_publish(mqtt_client, "tele/lora/SENSOR_SPANISH", msg, 0, 1, 0);
-            if (msg_id < 0)
-            {
-                ESP_LOGE(pcTaskGetName(NULL), "Failed to publish message");
-            }
-            else
-            {
-                ESP_LOGI(pcTaskGetName(NULL), "Published message with msg_id: %d", msg_id);
-            }
+            // ESP_LOGI(pcTaskGetName(NULL), "Publishing message: %s", msg);
+
+            // // Publish the formatted message over MQTT
+            // int msg_id = esp_mqtt_client_publish(mqtt_client, "tele/lora/SENSOR_SPANISH", msg, 0, 1, 0);
+            // if (msg_id < 0)
+            // {
+            //     ESP_LOGE(pcTaskGetName(NULL), "Failed to publish message");
+            // }
+            // else
+            // {
+            //     ESP_LOGI(pcTaskGetName(NULL), "Published message with msg_id: %d", msg_id);
+            // }
         }
         vTaskDelay(2);
     }
