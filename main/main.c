@@ -165,7 +165,6 @@ void task_tx(void *pvParameters)
         //     ESP_LOGI(TAG, "0x%x ", tx_buf[i]);
         // }
 
-
         lora_send_packet(tx_buf, 1);
 
         ESP_LOGI(pcTaskGetName(NULL), "Packet sent: 0x%x", tx_buf[0]);
@@ -198,9 +197,17 @@ void task_rx(void *pvParameters)
         {
             uint8_t rx_buf[1] = {0};
             uint8_t rxLen = 0;
+            uint8_t rssi = 0;
+            uint8_t snr = 0;
+
             lora_receive_packet(rx_buf, &rxLen, sizeof(rx_buf));
+            
+            lora_packet_rssi(&rssi);
+            lora_packet_snr(&snr);
 
             ESP_LOGI(pcTaskGetName(NULL), "Received: 0x%x", rx_buf[0]);
+            ESP_LOGI(pcTaskGetName(NULL), "Received RSSI: %u (dBm)", rssi);
+            ESP_LOGI(pcTaskGetName(NULL), "Received SNR: %u (dBm)", snr);
 
             // // Deserialize the byte array into a struct
             // memcpy(data.temperature.serialized, rx_buf, 8);
@@ -208,7 +215,7 @@ void task_rx(void *pvParameters)
             // memcpy(data.humidity.serialized, rx_buf + 16, 8);
 
             // ESP_LOGI(pcTaskGetName(NULL), "Received Temp: %f, Pres: %f, Hum: %f",
-            //          data.temperature.value, data.pressure.value, data.humidity.value);
+            //           data.temperature.value, data.pressure.value, data.humidity.value);
 
             // // Format the message to be sent over MQTT
             // char msg[100];

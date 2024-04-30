@@ -556,9 +556,24 @@ lora_status_t lora_received(bool *received)
    }
 
    if (reg_val & IRQ_RX_DONE_MASK)
+   {
       *received = true;
+
+      if (reg_val & IRQ_PAYLOAD_CRC_ERROR)
+      {
+         printf("CRC Error\n");
+         lora_write_reg(REG_IRQ_FLAGS, IRQ_PAYLOAD_CRC_ERROR_MASK);
+      }
+      else
+      {
+         
+         printf("CRC OK\n");
+      }
+   }
    else
+   {
       *received = false;
+   }
 
    return LORA_OK;
 }

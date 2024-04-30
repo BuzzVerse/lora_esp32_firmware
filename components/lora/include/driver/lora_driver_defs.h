@@ -75,7 +75,7 @@ typedef enum
 #define IRQ_TX_DONE_MASK 0x08
 #define IRQ_PAYLOAD_CRC_ERROR_MASK 0x20
 #define IRQ_RX_DONE_MASK 0x40
-
+#define IRQ_PAYLOAD_CRC_ERROR 0x20 
 #define PA_OUTPUT_RFO_PIN 0
 #define PA_OUTPUT_PA_BOOST_PIN 1
 
