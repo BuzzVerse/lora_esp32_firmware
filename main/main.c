@@ -35,17 +35,10 @@ static void initialize_sensors(void);
 #endif
 
 #if CONFIG_LORA_TRANSMITTER || TESTER
-typedef union
-{
-    double value;
-    uint8_t serialized[8];
-
-} serialized_data_t;
-
 typedef struct
 {
     int8_t temperature; // Temperature scaled to int8_t
-    uint16_t pressure;  // Pressure directly in uint16_t
+    int8_t pressure;    // Pressure directly in uint16_t
     uint8_t humidity;   // Humidity directly in uint8_t
 } bme280_data_t;
 
@@ -150,34 +143,31 @@ void task_tx(void *pvParameters)
     ESP_LOGI(pcTaskGetName(NULL), "Start TX");
     vTaskDelay(500 / portTICK_PERIOD_MS);
 
-    uint8_t tx_buf[4] = {0};
+    uint8_t tx_buf[3] = {0};
 
     while (1)
     {
         double temp_raw, press_raw, hum_raw;
-
-        // Read sensor values
         bme280_read_temperature(&temp_raw);
         bme280_read_pressure(&press_raw);
         bme280_read_humidity(&hum_raw);
 
-        // Convert and scale the raw sensor readings
-        data.temperature = (int8_t)(temp_raw * 2);   // Scale temperature and fit into int8_t
-        data.pressure = (uint16_t)(press_raw / 100); // Fit pressure into uint16_t
-        data.humidity = (uint8_t)(hum_raw);          // Fit humidity into uint8_t
+        ESP_LOGI(TAG, "Raw Temp: %.2f, Raw Press: %.2f, Raw Hum: %.2f", temp_raw, press_raw, hum_raw);
+
+        // Convert raw sensor readings
+        data.temperature = (int8_t)(temp_raw * 2);          // Scale temperature for higher precision and fit into int8_t
+        data.pressure = (int8_t)((press_raw / 100) - 1000); // Convert Pa to hPa, subtract 1000
+        data.humidity = (uint8_t)(hum_raw);                 // Fit humidity into uint8_t
 
         // Packing the data into tx_buf
         tx_buf[0] = (uint8_t)data.temperature;
-        tx_buf[1] = (uint8_t)(data.pressure & 0xFF);
-        tx_buf[2] = (uint8_t)((data.pressure >> 8) & 0xFF);
-        tx_buf[3] = data.humidity;
+        tx_buf[1] = (uint8_t)data.pressure; // Store the pressure difference directly in one byte
+        tx_buf[2] = data.humidity;
 
         // Log the packed data
-        ESP_LOGI(TAG, "TX Buffer: %02X %02X %02X %02X", tx_buf[0], tx_buf[1], tx_buf[2], tx_buf[3]);
-
-        // Log the sensor values before packing and sending
+        ESP_LOGI(TAG, "TX Buffer: 0x%02X 0x%02X 0x%02X", tx_buf[0], tx_buf[1], tx_buf[2]);
         ESP_LOGI(pcTaskGetName(NULL), "Temperature: %.2f C (scaled to %d)", temp_raw, data.temperature);
-        ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa (stored as %u)", press_raw / 100, data.pressure);
+        ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa (stored as %d)", press_raw / 100, data.pressure);
         ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %% (stored as %u)", hum_raw, data.humidity);
 
         lora_send_packet(tx_buf, sizeof(tx_buf));
@@ -203,7 +193,7 @@ void task_rx(void *pvParameters)
 
         if (hasReceived)
         {
-            uint8_t rx_buf[4] = {0};
+            uint8_t rx_buf[3] = {0};
             uint8_t rxLen = 0;
             uint8_t rssi = 0;
             uint8_t snr = 0;
@@ -214,16 +204,16 @@ void task_rx(void *pvParameters)
             lora_packet_snr(&snr);
 
             ESP_LOGI(TAG, "RSSI: %d dBm, SNR: %d dB", rssi, snr);
-            ESP_LOGI(TAG, "RX Buffer: %02X %02X %02X %02X", rx_buf[0], rx_buf[1], rx_buf[2], rx_buf[3]);
+            ESP_LOGI(TAG, "RX Buffer: 0x%02X 0x%02X 0x%02X", rx_buf[0], rx_buf[1], rx_buf[2]);
 
             float received_temp = ((float)((int8_t)rx_buf[0]) / 2.0);
-            uint16_t received_press = (uint16_t)(rx_buf[1] | (rx_buf[2] << 8));
-            float received_hum = (float)rx_buf[3];
+            int8_t packed_pressure = (int8_t)rx_buf[1];      // Force correct signed interpretation
+            int16_t received_press = 1000 + packed_pressure; // Correctly adjust by adding 1000
+
+            float received_hum = (float)rx_buf[2];
 
             // Log the decoded values
-            ESP_LOGI(pcTaskGetName(NULL), "Received Temp: %.2f C", received_temp);
-            ESP_LOGI(pcTaskGetName(NULL), "Received Pressure: %.2f hPa", (float)received_press);
-            ESP_LOGI(pcTaskGetName(NULL), "Received Humidity: %.2f %%", received_hum);
+            ESP_LOGI(pcTaskGetName(NULL), "Received Temp: %.2f C, Pressure: %d hPa, Humidity: %.2f %%", received_temp, received_press, received_hum);
 
             // // Format the message to be sent over MQTT
             // char msg[100];
