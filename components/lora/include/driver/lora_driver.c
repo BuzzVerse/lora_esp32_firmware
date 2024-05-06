@@ -481,7 +481,7 @@ lora_status_t lora_send_packet(uint8_t *buf, uint8_t size)
       return LORA_FAILED_SEND_PACKET;
    }
 
-   uint8_t loop = 0;
+   uint16_t loop = 0;
    uint8_t tmp = 0;
 
    irq = &tmp;
@@ -489,20 +489,19 @@ lora_status_t lora_send_packet(uint8_t *buf, uint8_t size)
    while (1)
    {
       ret = lora_read_reg(REG_IRQ_FLAGS, irq);
-      printf("lora_read_reg=0x%x\n", *irq);
 
       if ((*irq & IRQ_TX_DONE_MASK) == IRQ_TX_DONE_MASK)
       {
          printf("IRQ_TX_DONE_MASK\n");
-         printf("Time taken(ms): %d\n", loop * 5);
+         printf("Time taken(ms): %d\n", loop);
          break;
       }
       loop++;
-      if (loop == 255)
+      if (loop == 65535)
          break;
-      lora_delay(5);
+      lora_delay(1);
    }
-   if (loop == 255)
+   if (loop == 65535)
    {
       __send_packet_lost++;
       printf("lora_send_packet Fail\n");
@@ -566,7 +565,7 @@ lora_status_t lora_received(bool *received)
       }
       else
       {
-         
+
          printf("CRC OK\n");
       }
    }
