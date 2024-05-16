@@ -1,0 +1,3 @@
+[submodule "components/lora/lora.driver"]
+	path = components/lora/lora.driver
+	url = https://github.com/BuzzVerse/lora.driver.git

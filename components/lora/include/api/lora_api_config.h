@@ -1,9 +1,0 @@
-#ifdef CONFIG_RST_GPIO
-
-#define LORA_API_CONFIG_RST_GPIO CONFIG_RST_GPIO
-
-#elif
-
-#define LORA_API_CONFIG_RST_GPIO 3
-
-#endif

@@ -35,6 +35,26 @@ static void initialize_sensors(void);
 #endif
 
 #if CONFIG_LORA_TRANSMITTER || TESTER
+#define DATA_SIZE 60
+
+// Define the bitfields for the first part of the packet
+typedef struct
+{
+    uint8_t version : 3;    // 3 bits for version
+    uint8_t packetType : 1; // 1 bit for packet type
+    uint8_t msgID : 4;      // 4 bits for message ID
+} PacketHeader;
+
+// Define the entire packet structure
+typedef struct
+{
+    PacketHeader header;     // 1 byte for header (3 bits version, 1 bit packet type, 4 bits msg ID)
+    uint16_t class;          // 2 bytes for class
+    uint16_t deviceID;       // 2 bytes for device ID
+    uint8_t packetCategory;  // 1 byte for packet category
+    uint8_t data[DATA_SIZE]; // 60 bytes for data
+} LoRaPacket;
+
 typedef struct
 {
     int8_t temperature; // Temperature scaled to int8_t
@@ -154,29 +174,27 @@ void task_tx(void *pvParameters)
 
         ESP_LOGI(TAG, "Raw Temp: %.2f, Raw Press: %.2f, Raw Hum: %.2f", temp_raw, press_raw, hum_raw);
 
-        // Convert raw sensor readings
-        data.temperature = (int8_t)(temp_raw * 2);          // Scale temperature for higher precision and fit into int8_t
-        data.pressure = (int8_t)((press_raw / 100) - 1000); // Convert Pa to hPa, subtract 1000
-        data.humidity = (uint8_t)(hum_raw);                 // Fit humidity into uint8_t
+        // // Convert raw sensor readings
+        // data.temperature = (int8_t)(temp_raw * 2);          // Scale temperature for higher precision and fit into int8_t
+        // data.pressure = (int8_t)((press_raw / 100) - 1000); // Convert Pa to hPa, subtract 1000
+        // data.humidity = (uint8_t)(hum_raw);                 // Fit humidity into uint8_t
 
-        // Packing the data into tx_buf
-        tx_buf[0] = (uint8_t)data.temperature;
-        tx_buf[1] = (uint8_t)data.pressure; // Store the pressure difference directly in one byte
-        tx_buf[2] = data.humidity;
+        // // Packing the data into tx_buf
+        // tx_buf[0] = (uint8_t)data.temperature;
+        // tx_buf[1] = (uint8_t)data.pressure; // Store the pressure difference directly in one byte
+        // tx_buf[2] = data.humidity;
 
-        // Log the packed data
-        ESP_LOGI(TAG, "TX Buffer: 0x%02X 0x%02X 0x%02X", tx_buf[0], tx_buf[1], tx_buf[2]);
-        ESP_LOGI(pcTaskGetName(NULL), "Temperature: %.2f C (scaled to %d)", temp_raw, data.temperature);
-        ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa (stored as %d)", press_raw / 100, data.pressure);
-        ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %% (stored as %u)", hum_raw, data.humidity);
+        LoRaPacket packet;
+        uint8_t buffer[sizeof(LoRaPacket)] = {0};
 
-        lora_send_packet(tx_buf, sizeof(tx_buf));
-
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
-
-        // low_power_mode_set_sleep_time(60 * 60 * 4);
-        // vTaskDelay(500 / portTICK_PERIOD_MS);
-        // low_power_mode_enter_deep_sleep();
+        // Fill the packet with some example data
+        packet.header.version = 3;
+        packet.header.packetType = 1;
+        packet.header.msgID = 5;
+        packet.class = 256;
+        packet.deviceID = 512;
+        packet.packetCategory = 2;
+        memset(packet.data, 'A', DATA_SIZE);
     }
 }
 #endif
