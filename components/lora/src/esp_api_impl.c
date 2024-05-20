@@ -4,10 +4,10 @@
 #include "freertos/task.h"
 #include "esp_system.h"
 #include "esp_log.h"
-#include "driver/spi_master.h"
 #include "driver/gpio.h"
 
 static spi_device_handle_t __spi;
+static const char *TAG = "LORA_API";
 
 api_status_t spi_init(void)
 {
@@ -36,12 +36,19 @@ api_status_t spi_init(void)
         .queue_size = 7,
         .flags = 0,
         .pre_cb = NULL};
+
     ret += spi_bus_add_device(SPI2_HOST, &dev, &__spi);
 
     if (ESP_OK == ret)
+    {
+        LOGI(TAG, "SPI initialized successfully");
         return API_OK;
+    }
     else
+    {
+        LOGE(TAG, "SPI initialization failed");
         return API_SPI_ERROR;
+    }
 }
 
 api_status_t spi_write(uint8_t reg, uint8_t val)
@@ -59,8 +66,11 @@ api_status_t spi_write(uint8_t reg, uint8_t val)
     {
         return API_OK;
     }
-
-    return API_SPI_ERROR;
+    else
+    {
+        LOGE(TAG, "SPI write failed: reg=0x%02X, val=0x%02X", reg, val);
+        return API_SPI_ERROR;
+    }
 }
 
 api_status_t spi_write_buf(uint8_t reg, uint8_t *val, uint16_t len)
@@ -83,12 +93,15 @@ api_status_t spi_write_buf(uint8_t reg, uint8_t *val, uint16_t len)
 
     ret = spi_device_transmit(__spi, &t);
     free(out);
+
     if (ESP_OK == ret)
     {
+        LOGI(TAG, "SPI buffer write successful: reg=0x%02X, len=%d", reg, len);
         return API_OK;
     }
     else
     {
+        LOGE(TAG, "SPI buffer write failed: reg=0x%02X, len=%d", reg, len);
         return API_SPI_ERROR;
     }
 }
@@ -114,6 +127,7 @@ api_status_t spi_read(uint8_t reg, uint8_t *val)
     }
     else
     {
+        LOGE(TAG, "SPI read failed: reg=0x%02X", reg);
         return API_SPI_ERROR;
     }
 }
@@ -151,23 +165,44 @@ api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
 
     if (ESP_OK == ret)
     {
+        LOGD(TAG, "SPI buffer read successful: reg=0x%02X, len=%d", reg, len);
         return API_OK;
     }
     else
     {
+        LOGE(TAG, "SPI buffer read failed: reg=0x%02X, len=%d", reg, len);
         return API_SPI_ERROR;
     }
+}
+
+void lora_logi(const char *tag, const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    char buffer[256];
+    vsnprintf(buffer, sizeof(buffer), fmt, args);
+    ESP_LOGI(tag, "%s", buffer);
+    va_end(args);
+}
+
+void lora_loge(const char *tag, const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    char buffer[256];
+    vsnprintf(buffer, sizeof(buffer), fmt, args);
+    ESP_LOGE(tag, "%s", buffer);
+    va_end(args);
+}
+
+void lora_logd(const char *tag, const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    char buffer[256];
+    vsnprintf(buffer, sizeof(buffer), fmt, args);
+    ESP_LOGD(tag, "%s", buffer);
+    va_end(args);
 }
 
 void lora_delay(uint32_t ticks)
 {
     vTaskDelay(ticks);
-}
-
-void lora_reset(void)
-{
-    gpio_set_level(CONFIG_RST_GPIO, 0);
-    lora_delay(1);
-    gpio_set_level(CONFIG_RST_GPIO, 1);
-    lora_delay(10);
 }
