@@ -17,10 +17,10 @@
 
 #define TAG "Main"
 
-#define CLASS_ID 1           // Example class ID
-#define DEVICE_ID 1          // Example device ID
-#define PACKET_VERSION 1     // Example packet version
-#define DATA_TYPE 1          // Example data type
+#define CLASS_ID 1       // Example class ID
+#define DEVICE_ID 1      // Example device ID
+#define PACKET_VERSION 1 // Example packet version
+#define DATA_TYPE 1      // Example data type
 
 #if CONFIG_LORA_TRANSMITTER || CONFIG_TESTER
 static void initialize_sensors(void);
@@ -83,7 +83,11 @@ static void initialize_mqtt(void)
 void app_main(void)
 {
     ESP_LOGI("MAIN", "Initializing LoRa");
-    lora_init();
+    if (0 != lora_driver_init())
+    {
+        ESP_LOGE("MAIN", "LoRa initialization failed");
+        return;
+    }
 
 #if CONFIG_LORA_TRANSMITTER
     initialize_sensors();
@@ -102,13 +106,15 @@ void app_main(void)
 }
 
 #if CONFIG_LORA_TRANSMITTER
-void task_tx(void *pvParameters) {
+void task_tx(void *pvParameters)
+{
     ESP_LOGI(pcTaskGetName(NULL), "Start TX");
     vTaskDelay(500 / portTICK_PERIOD_MS);
 
     LoRaPacket packet = {0};
 
-    while (1) {
+    while (1)
+    {
         double temp_raw, press_raw, hum_raw;
         bme280_read_temperature(&temp_raw);
         bme280_read_pressure(&press_raw);
@@ -117,25 +123,25 @@ void task_tx(void *pvParameters) {
         // Fill the packet with the sensor data
         packet.id = (CLASS_ID << 4) | DEVICE_ID;
         packet.version = (PACKET_VERSION << 4) | 0; // Reserved 4 bits set to 0
-        packet.msgID = 1; // Example message ID
-        packet.msgCount = 1; // Example message count (optional, set as needed)
-        packet.dataType = DATA_TYPE; // Example data type
-        
+        packet.msgID = 1;                           // Example message ID
+        packet.msgCount = 1;                        // Example message count (optional, set as needed)
+        packet.dataType = DATA_TYPE;                // Example data type
+
         // Example data format: temperature, pressure, humidity
-        packet.data[0] = (int8_t)(temp_raw * 2);          // Scaled temperature
+        packet.data[0] = (int8_t)(temp_raw * 2); // Scaled temperature
         int16_t pressure_diff = (int16_t)(press_raw / 100) - 1000;
-        packet.data[1] = (uint8_t)(pressure_diff & 0xFF); // Lower byte of pressure difference
+        packet.data[1] = (uint8_t)(pressure_diff & 0xFF);        // Lower byte of pressure difference
         packet.data[2] = (uint8_t)((pressure_diff >> 8) & 0xFF); // Upper byte of pressure difference
-        packet.data[3] = (uint8_t)hum_raw;                // Humidity
-        
+        packet.data[3] = (uint8_t)hum_raw;                       // Humidity
+
         // Fill remaining data with 0s for now (or actual data if available)
         memset(&packet.data[4], 0, DATA_SIZE - 4);
-        
+
         // Log the packet data before sending
         ESP_LOGI(pcTaskGetName(NULL), "Temperature: %.2f C (scaled to %d)", temp_raw, packet.data[0]);
         ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa (stored as %d)", press_raw / 100, pressure_diff);
         ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %% (stored as %u)", hum_raw, packet.data[3]);
-        
+
         lora_send(&packet);
         ESP_LOGI(TAG, "Packet sent");
 
@@ -146,11 +152,13 @@ void task_tx(void *pvParameters) {
 #endif
 
 #if CONFIG_LORA_RECEIVER
-void task_rx(void *pvParameters) {
+void task_rx(void *pvParameters)
+{
     ESP_LOGI(pcTaskGetName(NULL), "Start RX");
     LoRaPacket packet = {0};
 
-    while (1) {
+    while (1)
+    {
         lora_receive(&packet);
 
         // Unpack and log the received data
@@ -172,11 +180,11 @@ void task_rx(void *pvParameters) {
         ESP_LOGI(pcTaskGetName(NULL), "Message Count: %d", packet.msgCount);
         ESP_LOGI(pcTaskGetName(NULL), "Data Type: %d", packet.dataType);
 
-        vTaskDelay(2);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
 }
-
 #endif
+
 
 #if CONFIG_TESTER
 void task_tester(void *pvParameters)

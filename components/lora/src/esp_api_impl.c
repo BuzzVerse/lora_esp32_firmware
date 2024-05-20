@@ -11,6 +11,7 @@ static const char *TAG = "LORA_API";
 
 api_status_t spi_init(void)
 {
+    printf("SPI init\n");
     esp_err_t ret;
 
     ret = gpio_reset_pin(CONFIG_RST_GPIO);
@@ -41,12 +42,12 @@ api_status_t spi_init(void)
 
     if (ESP_OK == ret)
     {
-        LOGI(TAG, "SPI initialized successfully");
+        ESP_LOGI(TAG, "SPI initialized successfully");
         return API_OK;
     }
     else
     {
-        LOGE(TAG, "SPI initialization failed");
+        ESP_LOGE(TAG, "SPI initialization failed");
         return API_SPI_ERROR;
     }
 }
@@ -68,7 +69,7 @@ api_status_t spi_write(uint8_t reg, uint8_t val)
     }
     else
     {
-        LOGE(TAG, "SPI write failed: reg=0x%02X, val=0x%02X", reg, val);
+        ESP_LOGE(TAG, "SPI write failed: reg=0x%02X, val=0x%02X", reg, val);
         return API_SPI_ERROR;
     }
 }
@@ -96,12 +97,12 @@ api_status_t spi_write_buf(uint8_t reg, uint8_t *val, uint16_t len)
 
     if (ESP_OK == ret)
     {
-        LOGI(TAG, "SPI buffer write successful: reg=0x%02X, len=%d", reg, len);
+        ESP_LOGI(TAG, "SPI buffer write successful: reg=0x%02X, len=%d", reg, len);
         return API_OK;
     }
     else
     {
-        LOGE(TAG, "SPI buffer write failed: reg=0x%02X, len=%d", reg, len);
+        ESP_LOGE(TAG, "SPI buffer write failed: reg=0x%02X, len=%d", reg, len);
         return API_SPI_ERROR;
     }
 }
@@ -127,7 +128,7 @@ api_status_t spi_read(uint8_t reg, uint8_t *val)
     }
     else
     {
-        LOGE(TAG, "SPI read failed: reg=0x%02X", reg);
+        ESP_LOGE(TAG, "SPI read failed: reg=0x%02X", reg);
         return API_SPI_ERROR;
     }
 }
@@ -165,41 +166,14 @@ api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
 
     if (ESP_OK == ret)
     {
-        LOGD(TAG, "SPI buffer read successful: reg=0x%02X, len=%d", reg, len);
+        ESP_LOGD(TAG, "SPI buffer read successful: reg=0x%02X, len=%d", reg, len);
         return API_OK;
     }
     else
     {
-        LOGE(TAG, "SPI buffer read failed: reg=0x%02X, len=%d", reg, len);
+        ESP_LOGE(TAG, "SPI buffer read failed: reg=0x%02X, len=%d", reg, len);
         return API_SPI_ERROR;
     }
-}
-
-void lora_logi(const char *tag, const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    char buffer[256];
-    vsnprintf(buffer, sizeof(buffer), fmt, args);
-    ESP_LOGI(tag, "%s", buffer);
-    va_end(args);
-}
-
-void lora_loge(const char *tag, const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    char buffer[256];
-    vsnprintf(buffer, sizeof(buffer), fmt, args);
-    ESP_LOGE(tag, "%s", buffer);
-    va_end(args);
-}
-
-void lora_logd(const char *tag, const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    char buffer[256];
-    vsnprintf(buffer, sizeof(buffer), fmt, args);
-    ESP_LOGD(tag, "%s", buffer);
-    va_end(args);
 }
 
 void lora_delay(uint32_t ticks)
