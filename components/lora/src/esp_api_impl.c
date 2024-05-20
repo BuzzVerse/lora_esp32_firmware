@@ -7,11 +7,11 @@
 #include "driver/gpio.h"
 
 static spi_device_handle_t __spi;
-static const char *TAG = "LORA_API";
+static const char *LORA_API_TAG = "LORA_API";
 
 api_status_t spi_init(void)
 {
-    printf("SPI init\n");
+    ESP_LOGI(LORA_API_TAG, "Initializing spi...\n");
     esp_err_t ret;
 
     ret = gpio_reset_pin(CONFIG_RST_GPIO);
@@ -42,12 +42,12 @@ api_status_t spi_init(void)
 
     if (ESP_OK == ret)
     {
-        ESP_LOGI(TAG, "SPI initialized successfully");
+        ESP_LOGI(LORA_API_TAG, "SPI initialized successfully");
         return API_OK;
     }
     else
     {
-        ESP_LOGE(TAG, "SPI initialization failed");
+        ESP_LOGE(LORA_API_TAG, "SPI initialization failed");
         return API_SPI_ERROR;
     }
 }
@@ -69,7 +69,7 @@ api_status_t spi_write(uint8_t reg, uint8_t val)
     }
     else
     {
-        ESP_LOGE(TAG, "SPI write failed: reg=0x%02X, val=0x%02X", reg, val);
+        ESP_LOGE(LORA_API_TAG, "SPI write failed: reg=0x%02X, val=0x%02X", reg, val);
         return API_SPI_ERROR;
     }
 }
@@ -97,12 +97,12 @@ api_status_t spi_write_buf(uint8_t reg, uint8_t *val, uint16_t len)
 
     if (ESP_OK == ret)
     {
-        ESP_LOGI(TAG, "SPI buffer write successful: reg=0x%02X, len=%d", reg, len);
+        ESP_LOGI(LORA_API_TAG, "SPI buffer write successful: reg=0x%02X, len=%d", reg, len);
         return API_OK;
     }
     else
     {
-        ESP_LOGE(TAG, "SPI buffer write failed: reg=0x%02X, len=%d", reg, len);
+        ESP_LOGE(LORA_API_TAG, "SPI buffer write failed: reg=0x%02X, len=%d", reg, len);
         return API_SPI_ERROR;
     }
 }
@@ -128,7 +128,7 @@ api_status_t spi_read(uint8_t reg, uint8_t *val)
     }
     else
     {
-        ESP_LOGE(TAG, "SPI read failed: reg=0x%02X", reg);
+        ESP_LOGE(LORA_API_TAG, "SPI read failed: reg=0x%02X", reg);
         return API_SPI_ERROR;
     }
 }
@@ -166,12 +166,12 @@ api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
 
     if (ESP_OK == ret)
     {
-        ESP_LOGD(TAG, "SPI buffer read successful: reg=0x%02X, len=%d", reg, len);
+        ESP_LOGD(LORA_API_TAG, "SPI buffer read successful: reg=0x%02X, len=%d", reg, len);
         return API_OK;
     }
     else
     {
-        ESP_LOGE(TAG, "SPI buffer read failed: reg=0x%02X, len=%d", reg, len);
+        ESP_LOGE(LORA_API_TAG, "SPI buffer read failed: reg=0x%02X, len=%d", reg, len);
         return API_SPI_ERROR;
     }
 }

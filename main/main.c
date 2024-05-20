@@ -17,10 +17,10 @@
 
 #define TAG "Main"
 
-#define CLASS_ID 1       // Example class ID
-#define DEVICE_ID 1      // Example device ID
-#define PACKET_VERSION 1 // Example packet version
-#define DATA_TYPE 1      // Example data type
+#define CLASS_ID 1
+#define DEVICE_ID 2
+#define PACKET_VERSION 3
+#define DATA_TYPE 4
 
 #if CONFIG_LORA_TRANSMITTER || CONFIG_TESTER
 static void initialize_sensors(void);
@@ -83,7 +83,7 @@ static void initialize_mqtt(void)
 void app_main(void)
 {
     ESP_LOGI("MAIN", "Initializing LoRa");
-    if (0 != lora_driver_init())
+    if (LORA_OK != lora_init())
     {
         ESP_LOGE("MAIN", "LoRa initialization failed");
         return;
@@ -120,27 +120,22 @@ void task_tx(void *pvParameters)
         bme280_read_pressure(&press_raw);
         bme280_read_humidity(&hum_raw);
 
-        // Fill the packet with the sensor data
-        packet.id = (CLASS_ID << 4) | DEVICE_ID;
+        // Fill the packet with the meta data
         packet.version = (PACKET_VERSION << 4) | 0; // Reserved 4 bits set to 0
+        packet.id = (CLASS_ID << 4) | DEVICE_ID;
         packet.msgID = 1;                           // Example message ID
         packet.msgCount = 1;                        // Example message count (optional, set as needed)
         packet.dataType = DATA_TYPE;                // Example data type
 
-        // Example data format: temperature, pressure, humidity
-        packet.data[0] = (int8_t)(temp_raw * 2); // Scaled temperature
-        int16_t pressure_diff = (int16_t)(press_raw / 100) - 1000;
-        packet.data[1] = (uint8_t)(pressure_diff & 0xFF);        // Lower byte of pressure difference
-        packet.data[2] = (uint8_t)((pressure_diff >> 8) & 0xFF); // Upper byte of pressure difference
-        packet.data[3] = (uint8_t)hum_raw;                       // Humidity
-
-        // Fill remaining data with 0s for now (or actual data if available)
-        memset(&packet.data[4], 0, DATA_SIZE - 4);
+        // Convert raw sensor readings
+        packet.data[0] = (int8_t)(temp_raw * 2);             // Scale temperature for higher precision and fit into int8_t
+        packet.data[1] = (int8_t)((press_raw / 100) - 1000); // Convert Pa to hPa, subtract 1000
+        packet.data[2] = (uint8_t)hum_raw;                   // Fit humidity into uint8_t
 
         // Log the packet data before sending
         ESP_LOGI(pcTaskGetName(NULL), "Temperature: %.2f C (scaled to %d)", temp_raw, packet.data[0]);
-        ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa (stored as %d)", press_raw / 100, pressure_diff);
-        ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %% (stored as %u)", hum_raw, packet.data[3]);
+        ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa (stored as %d)", press_raw / 100, packet.data[1]);
+        ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %% (stored as %u)", hum_raw, packet.data[2]);
 
         lora_send(&packet);
         ESP_LOGI(TAG, "Packet sent");
@@ -163,14 +158,15 @@ void task_rx(void *pvParameters)
 
         // Unpack and log the received data
         float received_temp = ((float)((int8_t)packet.data[0]) / 2.0);
-        int16_t pressure_diff = (int16_t)(packet.data[1] | (packet.data[2] << 8));
-        float received_press = (float)(1000 + pressure_diff);
-        float received_hum = (float)packet.data[3];
+        float received_press = (float)(1000 + (int8_t)packet.data[1]);
+        float received_hum = (float)packet.data[2];
 
         // Log the decoded values
         ESP_LOGI(pcTaskGetName(NULL), "Received Temp: %.2f C", received_temp);
         ESP_LOGI(pcTaskGetName(NULL), "Received Pressure: %.2f hPa", received_press);
         ESP_LOGI(pcTaskGetName(NULL), "Received Humidity: %.2f %%", received_hum);
+
+        printf("\n");
 
         // Log the packet details
         ESP_LOGI(pcTaskGetName(NULL), "Class: %d", packet.id >> 4);
@@ -184,7 +180,6 @@ void task_rx(void *pvParameters)
     }
 }
 #endif
-
 
 #if CONFIG_TESTER
 void task_tester(void *pvParameters)

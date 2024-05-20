@@ -6,14 +6,20 @@
 #include <string.h>
 #include <stdio.h>
 
-#define LORA_FREQUENCY 433e6
-#define LORA_CODING_RATE 8
-#define LORA_BANDWIDTH 4
-#define LORA_SPREADING_FACTOR 12
-#define LORA_CRC 1
+#define LORA_FREQUENCY (CONFIG_LORA_FREQUENCY * 1e6)
+#define LORA_CODING_RATE CONFIG_LORA_CODING_RATE
+#define LORA_BANDWIDTH CONFIG_LORA_BANDWIDTH
+#define LORA_SPREADING_FACTOR CONFIG_LORA_SPREADING_FACTOR
+#define LORA_CRC CONFIG_LORA_CRC
 
 lora_status_t lora_init(void)
 {
+
+    printf("FREQ: %f\n", LORA_FREQUENCY);
+    printf("CODING RATE: %d\n", LORA_CODING_RATE);
+    printf("BANDWIDTH: %d\n", LORA_BANDWIDTH);
+    printf("SPREADING FACTOR: %d\n", LORA_SPREADING_FACTOR);
+    printf("CRC: %d\n", LORA_CRC);
 
     if (LORA_OK != lora_driver_init())
     {
@@ -36,50 +42,61 @@ lora_status_t lora_init(void)
 
 void lora_send(const LoRaPacket *packet)
 {
-    uint8_t buffer[DATA_SIZE] = {0}; // Ensure buffer is 64 bytes
+    // Buffer to hold the received packet
+    uint8_t buffer[PACKET_SIZE] = {0};
 
     // Pack the id and version fields
-    buffer[0] = (packet->id & 0xF0) | ((packet->version >> 4) & 0x0F);
-    buffer[1] = packet->msgID;
-    buffer[2] = packet->msgCount;
-    buffer[3] = packet->dataType;
+    buffer[0] = packet->version;
+    buffer[1] = packet->id;
+    buffer[2] = packet->msgID;
+    buffer[3] = packet->msgCount;
+    buffer[4] = packet->dataType;
 
     // Copy the data
-    memcpy(&buffer[4], packet->data, DATA_SIZE - 4);
+    memcpy(&buffer[META_DATA_SIZE], packet->data, DATA_SIZE);
 
+    printf("\n");
     for (int i = 0; i < sizeof(buffer); i++)
     {
-        printf("0x%x \n", buffer[i]);
+        printf("0x%x ", buffer[i]);
     }
+    printf("\n");
 
     lora_send_packet(buffer, sizeof(buffer));
 }
 
 void lora_receive(LoRaPacket *packet)
 {
-    uint8_t buffer[64] = {0};
+    // Buffer to hold the received packet
+    uint8_t buffer[PACKET_SIZE] = {0};
     uint8_t length = 0;
 
     lora_receive_mode(); // Put into receive mode
-    bool hasReceived = false;
 
     while (1)
     {
+        bool hasReceived = false;
         lora_received(&hasReceived);
 
         if (hasReceived)
         {
             lora_receive_packet(buffer, &length, sizeof(buffer));
 
+            for (int i = 0; i < sizeof(buffer); i++)
+            {
+                printf("0x%x ", buffer[i]);
+            }
+            printf("\n");
+
             // Unpack the id and version fields
-            packet->id = buffer[0] >> 4;
-            packet->version = (buffer[0] & 0x0F) << 4;
-            packet->msgID = buffer[1];
-            packet->msgCount = buffer[2];
-            packet->dataType = buffer[3];
+            packet->version = buffer[0];
+            packet->id = buffer[1];
+            packet->msgID = buffer[2];
+            packet->msgCount = buffer[3];
+            packet->dataType = buffer[4];
 
             // Copy the data
-            memcpy(packet->data, &buffer[4], DATA_SIZE);
+            memcpy(packet->data, &buffer[META_DATA_SIZE], DATA_SIZE);
             return;
         }
 

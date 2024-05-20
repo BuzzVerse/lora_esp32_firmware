@@ -1,26 +1,60 @@
-// lora.h
-
 #ifndef LORA_H
 #define LORA_H
 
 #include <stdint.h>
 #include "driver/lora_driver.h"
 #include "api/driver_api.h"
-#define DATA_SIZE 8 // Adjusted size to fit within 64 bytes total
 
+#define DATA_SIZE 3
+#define META_DATA_SIZE 5
+#define PACKET_SIZE (DATA_SIZE + META_DATA_SIZE)
+
+/**
+ * @brief Structure representing a LoRa packet.
+ *
+ * @details This structure holds the data for a LoRa packet, including an ID,
+ * version, message ID, message count, data type, and the actual data payload.
+ */
 typedef struct
 {
-    uint8_t id;              // 4 bits class + 4 bits device id
-    uint8_t version;         // 4 bits version + 4 bits reserved for later use
-    uint8_t msgID;           // 1 byte message id
-    uint8_t msgCount;        // 1 byte message count (optional, can be zero if not used)
-    uint8_t dataType;        // 1 byte data type
-    uint8_t data[DATA_SIZE]; // Up to 55 bytes of data
+    uint8_t version;         /**< 4 bits version + 4 bits reserved for later use */
+    uint8_t id;              /**< 4 bits class + 4 bits device ID */
+    uint8_t msgID;           /**< 1 byte message ID */
+    uint8_t msgCount;        /**< 1 byte message count (optional, can be zero if not used) */
+    uint8_t dataType;        /**< 1 byte data type */
+    uint8_t data[DATA_SIZE]; /**< Data payload */
 } LoRaPacket;
 
-// Function prototypes
-lora_status_t lora_driver_init(void);
+/**
+ * @brief Initialize the LoRa module.
+ *
+ * @details This function initializes the LoRa driver, sets the frequency, CRC,
+ * coding rate, bandwidth, and spreading factor, and dumps the LoRa registers.
+ *
+ * @return lora_status_t Result of the initialization.
+ */
+lora_status_t lora_init(void);
+
+/**
+ * @brief Send a LoRa packet.
+ *
+ * @details This function packs the ID, version, message ID, message count,
+ * and data type into a buffer, copies the data into the buffer, and sends
+ * the packet using the LoRa driver.
+ *
+ * @param packet Pointer to the LoRa packet to be sent.
+ */
 void lora_send(const LoRaPacket *packet);
+
+/**
+ * @brief Receive a LoRa packet.
+ *
+ * @details This function puts the LoRa module into receive mode, waits for
+ * a packet to be received, and unpacks the ID, version, message ID, message
+ * count, and data type from the received packet.
+ *
+ * @param packet Pointer to the LoRa packet structure to store the received data.
+ */
 void lora_receive(LoRaPacket *packet);
 
 #endif // LORA_H
