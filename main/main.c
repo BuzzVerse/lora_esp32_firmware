@@ -111,7 +111,7 @@ void task_tx(void *pvParameters)
     ESP_LOGI(pcTaskGetName(NULL), "Start TX");
     vTaskDelay(500 / portTICK_PERIOD_MS);
 
-    LoRaPacket packet = {0};
+    lora_packet_t packet = {0};
 
     while (1)
     {
@@ -150,7 +150,7 @@ void task_tx(void *pvParameters)
 void task_rx(void *pvParameters)
 {
     ESP_LOGI(pcTaskGetName(NULL), "Start RX");
-    LoRaPacket packet = {0};
+    lora_packet_t packet = {0};
 
     while (1)
     {

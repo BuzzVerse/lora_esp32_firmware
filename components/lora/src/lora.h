@@ -5,7 +5,7 @@
 #include "driver/lora_driver.h"
 #include "api/driver_api.h"
 
-#define DATA_SIZE 3
+#define DATA_SIZE 59
 #define META_DATA_SIZE 5
 #define PACKET_SIZE (DATA_SIZE + META_DATA_SIZE)
 
@@ -23,7 +23,7 @@ typedef struct
     uint8_t msgCount;        /**< 1 byte message count (optional, can be zero if not used) */
     uint8_t dataType;        /**< 1 byte data type */
     uint8_t data[DATA_SIZE]; /**< Data payload */
-} LoRaPacket;
+} lora_packet_t;
 
 /**
  * @brief Initialize the LoRa module.
@@ -44,7 +44,7 @@ lora_status_t lora_init(void);
  *
  * @param packet Pointer to the LoRa packet to be sent.
  */
-void lora_send(const LoRaPacket *packet);
+void lora_send(const lora_packet_t *packet);
 
 /**
  * @brief Receive a LoRa packet.
@@ -55,6 +55,6 @@ void lora_send(const LoRaPacket *packet);
  *
  * @param packet Pointer to the LoRa packet structure to store the received data.
  */
-void lora_receive(LoRaPacket *packet);
+void lora_receive(lora_packet_t *packet);
 
 #endif // LORA_H

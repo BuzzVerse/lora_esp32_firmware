@@ -40,7 +40,7 @@ lora_status_t lora_init(void)
     return LORA_OK;
 }
 
-void lora_send(const LoRaPacket *packet)
+void lora_send(const lora_packet_t *packet)
 {
     // Buffer to hold the received packet
     uint8_t buffer[PACKET_SIZE] = {0};
@@ -65,7 +65,7 @@ void lora_send(const LoRaPacket *packet)
     lora_send_packet(buffer, sizeof(buffer));
 }
 
-void lora_receive(LoRaPacket *packet)
+void lora_receive(lora_packet_t *packet)
 {
     // Buffer to hold the received packet
     uint8_t buffer[PACKET_SIZE] = {0};
