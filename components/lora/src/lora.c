@@ -40,7 +40,7 @@ lora_status_t lora_init(void)
     return LORA_OK;
 }
 
-void lora_send(const lora_packet_t *packet)
+lora_status_t lora_send(const lora_packet_t *packet)
 {
     // Buffer to hold the received packet
     uint8_t buffer[PACKET_SIZE] = {0};
@@ -62,10 +62,29 @@ void lora_send(const lora_packet_t *packet)
     }
     printf("\n");
 
-    lora_send_packet(buffer, sizeof(buffer));
+    return lora_send_packet(buffer, sizeof(buffer));
 }
 
-void lora_receive(lora_packet_t *packet)
+lora_status_t lora_send_confirmation(const lora_packet_t *packet)
+{
+    lora_packet_t receive_packet;
+
+    lora_send(packet);
+    for (int i = 0; i < 5; i++)
+    {
+        lora_receive(&receive_packet);
+        if (receive_packet.msgID == packet->msgID)
+        {
+            ESP_LOGI(LORA_TAG, "Received confirmation for message ID %d", packet->msgID);
+            return LORA_OK;
+        }
+    }
+
+    ESP_LOGE(LORA_TAG, "Could not receive confirmation for message ID %d", packet->msgID);
+    return LORA_FAILED_RECEIVE_PACKET;
+}
+
+lora_status_t lora_receive(lora_packet_t *packet)
 {
     // Buffer to hold the received packet
     uint8_t buffer[PACKET_SIZE] = {0};
@@ -97,9 +116,13 @@ void lora_receive(lora_packet_t *packet)
 
             // Copy the data
             memcpy(packet->data, &buffer[META_DATA_SIZE], DATA_SIZE);
-            return;
+            return LORA_OK;
         }
-
         lora_delay(2);
     }
+}
+
+lora_status_t lora_receive_confirmation(lora_packet_t *packet)
+{
+    
 }
