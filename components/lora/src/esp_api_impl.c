@@ -176,7 +176,7 @@ api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
     }
 }
 
-void lora_delay(uint32_t ticks)
+void lora_delay(uint32_t ms)
 {
-    vTaskDelay(ticks);
+    vTaskDelay(ms / portTICK_PERIOD_MS);
 }

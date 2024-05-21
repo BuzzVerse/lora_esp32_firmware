@@ -12,6 +12,8 @@
 #define LORA_SPREADING_FACTOR CONFIG_LORA_SPREADING_FACTOR
 #define LORA_CRC CONFIG_LORA_CRC
 
+#define CONFIRMATION_TIMEOUT 5
+
 lora_status_t lora_init(void)
 {
 
@@ -40,7 +42,7 @@ lora_status_t lora_init(void)
     return LORA_OK;
 }
 
-lora_status_t lora_send(const lora_packet_t *packet)
+lora_status_t lora_send(lora_packet_t *packet)
 {
     // Buffer to hold the received packet
     uint8_t buffer[PACKET_SIZE] = {0};
@@ -65,24 +67,54 @@ lora_status_t lora_send(const lora_packet_t *packet)
     return lora_send_packet(buffer, sizeof(buffer));
 }
 
-lora_status_t lora_send_confirmation(const lora_packet_t *packet)
+lora_status_t lora_send_confirmation(lora_packet_t *packet)
 {
     lora_packet_t receive_packet;
+    lora_status_t status;
 
-    lora_send(packet);
-    for (int i = 0; i < 5; i++)
+    // Send the packet
+    status = lora_send(packet);
+    if (status != LORA_OK)
     {
-        lora_receive(&receive_packet);
-        if (receive_packet.msgID == packet->msgID)
+        printf("Failed to send message ID %d\n", packet->msgID);
+        return status;
+    }
+    printf("Sent message ID %d\n", packet->msgID);
+
+    // Wait for confirmation
+    printf("Waiting for confirmation for message ID %d ...\n", packet->msgID);
+
+    bool confirmation_received = false;
+    int attempts = 0;
+    const int max_attempts = 5;
+
+    while (!confirmation_received && attempts < max_attempts)
+    {
+        printf("Attempt %d: Waiting for confirmation...\n", attempts + 1);
+        status = lora_receive(&receive_packet);
+        if (status == LORA_OK)
         {
-            ESP_LOGI(LORA_TAG, "Received confirmation for message ID %d", packet->msgID);
-            return LORA_OK;
+            printf("Received message with ID %d\n", receive_packet.msgID);
+            if (receive_packet.msgID == packet->msgID)
+            {
+                printf("Received confirmation for message ID %d!\n", packet->msgID);
+                return LORA_OK;
+            }
         }
+        else
+        {
+            printf("Attempt %d: No message received. Retrying...\n", attempts + 1);
+        }
+
+        // Add a delay before the next attempt
+        lora_delay(1000); // Delay for 1 second (adjust as needed)
+        attempts++;
     }
 
-    ESP_LOGE(LORA_TAG, "Could not receive confirmation for message ID %d", packet->msgID);
+    printf("Could not receive confirmation for message ID %d after %d attempts!\n", packet->msgID, max_attempts);
     return LORA_FAILED_RECEIVE_PACKET;
 }
+
 
 lora_status_t lora_receive(lora_packet_t *packet)
 {
@@ -91,6 +123,7 @@ lora_status_t lora_receive(lora_packet_t *packet)
     uint8_t length = 0;
 
     lora_receive_mode(); // Put into receive mode
+    lora_dump_registers();
 
     while (1)
     {
@@ -114,15 +147,34 @@ lora_status_t lora_receive(lora_packet_t *packet)
             packet->msgCount = buffer[3];
             packet->dataType = buffer[4];
 
-            // Copy the data
+            // @TODO Interpret the size from the dataType
             memcpy(packet->data, &buffer[META_DATA_SIZE], DATA_SIZE);
             return LORA_OK;
         }
-        lora_delay(2);
+        lora_delay(20);
     }
 }
 
 lora_status_t lora_receive_confirmation(lora_packet_t *packet)
 {
-    
+
+    lora_packet_t confirmation_packet;
+
+    lora_receive(packet);
+
+    printf("Received message ID %d\n", packet->msgID);
+
+    confirmation_packet.version = packet->version;
+    confirmation_packet.id = packet->id;
+    confirmation_packet.msgID = packet->msgID;
+    confirmation_packet.msgCount = 1;
+    confirmation_packet.dataType = 0;
+
+    confirmation_packet.data[0] = 0;
+    confirmation_packet.data[1] = 1;
+    confirmation_packet.data[2] = 2;
+
+    printf("Sending confirmation for message ID %d!\n", confirmation_packet.msgID);
+    lora_delay(2000); // Delay for 1 second (adjust as needed)
+    return lora_send(&confirmation_packet);
 }

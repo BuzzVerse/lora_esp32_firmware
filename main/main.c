@@ -17,11 +17,6 @@
 
 #define TAG "Main"
 
-#define CLASS_ID 1
-#define DEVICE_ID 2
-#define PACKET_VERSION 3
-#define DATA_TYPE 4
-
 #if CONFIG_LORA_TRANSMITTER || CONFIG_TESTER
 static void initialize_sensors(void);
 #endif
@@ -121,11 +116,11 @@ void task_tx(void *pvParameters)
         bme280_read_humidity(&hum_raw);
 
         // Fill the packet with the meta data
-        packet.version = (PACKET_VERSION << 4) | 0; // Reserved 4 bits set to 0
-        packet.id = (CLASS_ID << 4) | DEVICE_ID;
+        packet.version = (CONFIG_PACKET_VERSION << 4) | 0; // Reserved 4 bits set to 0
+        packet.id = (CONFIG_CLASS_ID << 4) | CONFIG_DEVICE_ID;
         packet.msgID = 1;                           // Example message ID
         packet.msgCount = 1;                        // Example message count (optional, set as needed)
-        packet.dataType = DATA_TYPE;                // Example data type
+        packet.dataType = CONFIG_DATA_TYPE;                // Example data type
 
         // Convert raw sensor readings
         packet.data[0] = (int8_t)(temp_raw * 2);             // Scale temperature for higher precision and fit into int8_t
@@ -137,7 +132,7 @@ void task_tx(void *pvParameters)
         ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa (stored as %d)", press_raw / 100, packet.data[1]);
         ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %% (stored as %u)", hum_raw, packet.data[2]);
 
-        lora_send(&packet);
+        lora_send_confirmation(&packet);
         ESP_LOGI(TAG, "Packet sent");
 
         vTaskDelay(5000 / portTICK_PERIOD_MS);
@@ -154,7 +149,7 @@ void task_rx(void *pvParameters)
 
     while (1)
     {
-        lora_receive(&packet);
+        lora_receive_confirmation(&packet);
 
         // Unpack and log the received data
         float received_temp = ((float)((int8_t)packet.data[0]) / 2.0);
