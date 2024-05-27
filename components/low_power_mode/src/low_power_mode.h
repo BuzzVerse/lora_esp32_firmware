@@ -1,6 +1,8 @@
 #ifndef LOW_POWER_MODE_H
 #define LOW_POWER_MODE_H
 
+#include <stdint.h>
+
 /**
  * @file low_power_mode.h
  * @authors Bykowski Olaf, Rafał Majewski
@@ -26,6 +28,6 @@ void low_power_mode_enter_deep_sleep(void);
  *
  * @details This function sets the sleep time for the low power mode. The sleep time is specified in seconds.
  */
-void low_power_mode_set_sleep_time(int sleep_time_sec);
+void low_power_mode_set_sleep_time(uint32_t sleep_time_sec);
 
 #endif // LOW_POWER_MODE_H

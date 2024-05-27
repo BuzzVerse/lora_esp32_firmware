@@ -14,6 +14,7 @@
 #include "esp_netif.h"
 #include "mqtt_client.h"
 #include "protocol_examples_common.h"
+#include "low_power_mode.h"
 
 #define TAG "Main"
 
@@ -68,7 +69,7 @@ static void initialize_mqtt(void)
         .broker.address.port = 1883,
         .broker.address.transport = MQTT_TRANSPORT_OVER_TCP,
         .credentials.username = "admin",
-        .credentials.authentication.password = "",
+        .credentials.authentication.password = "***REMOVED***",
     };
     mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
     esp_mqtt_client_start(mqtt_client);
@@ -90,6 +91,7 @@ void app_main(void)
 #endif
 
 #if CONFIG_LORA_RECEIVER
+    initialize_mqtt();
     xTaskCreate(&task_rx, "RX", 1024 * 3, NULL, 5, NULL);
 #endif
 
@@ -118,9 +120,9 @@ void task_tx(void *pvParameters)
         // Fill the packet with the meta data
         packet.version = (CONFIG_PACKET_VERSION << 4) | 0; // Reserved 4 bits set to 0
         packet.id = (CONFIG_CLASS_ID << 4) | CONFIG_DEVICE_ID;
-        packet.msgID = 1;                           // Example message ID
-        packet.msgCount = 1;                        // Example message count (optional, set as needed)
-        packet.dataType = CONFIG_DATA_TYPE;                // Example data type
+        packet.msgID = 1;                   // Example message ID
+        packet.msgCount = 1;                // Example message count (optional, set as needed)
+        packet.dataType = CONFIG_DATA_TYPE; // Example data type
 
         // Convert raw sensor readings
         packet.data[0] = (int8_t)(temp_raw * 2);             // Scale temperature for higher precision and fit into int8_t
@@ -132,10 +134,11 @@ void task_tx(void *pvParameters)
         ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa (stored as %d)", press_raw / 100, packet.data[1]);
         ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %% (stored as %u)", hum_raw, packet.data[2]);
 
-        lora_send_confirmation(&packet);
+        lora_send(&packet);
         ESP_LOGI(TAG, "Packet sent");
 
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
+        low_power_mode_set_sleep_time(60 * 60); // 1 hour
+        low_power_mode_enter_deep_sleep();
     }
 }
 
@@ -149,7 +152,8 @@ void task_rx(void *pvParameters)
 
     while (1)
     {
-        lora_receive_confirmation(&packet);
+        lora_status_t status;
+        status = lora_receive(&packet);
 
         // Unpack and log the received data
         float received_temp = ((float)((int8_t)packet.data[0]) / 2.0);
@@ -170,6 +174,29 @@ void task_rx(void *pvParameters)
         ESP_LOGI(pcTaskGetName(NULL), "Message ID: %d", packet.msgID);
         ESP_LOGI(pcTaskGetName(NULL), "Message Count: %d", packet.msgCount);
         ESP_LOGI(pcTaskGetName(NULL), "Data Type: %d", packet.dataType);
+
+        char msg[100];
+
+        if (status == LORA_OK)
+        {
+            sprintf(msg, "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
+                    received_temp, received_press, received_hum);
+        }
+        else
+        {
+            ESP_LOGE(MQTT_TAG, "Message CRC error!");
+            sprintf(msg, "{\"temperature\":-1, \"pressure\":-1, \"humidity\":-1}");
+        }
+
+        int msg_id = esp_mqtt_client_publish(mqtt_client, "tele/lora/SENSOR_SPANISH", msg, 0, 1, 0);
+        if (msg_id < 0)
+        {
+            ESP_LOGE(MQTT_TAG, "Failed to publish message");
+        }
+        else
+        {
+            ESP_LOGI(MQTT_TAG, "Published message with msg_id: %d", msg_id);
+        }
 
         vTaskDelay(5000 / portTICK_PERIOD_MS);
     }

@@ -97,7 +97,7 @@ api_status_t spi_write_buf(uint8_t reg, uint8_t *val, uint16_t len)
 
     if (ESP_OK == ret)
     {
-        ESP_LOGI(LORA_API_TAG, "SPI buffer write successful: reg=0x%02X, len=%d", reg, len);
+        ESP_LOGD(LORA_API_TAG, "SPI buffer write successful: reg=0x%02X, len=%d", reg, len);
         return API_OK;
     }
     else

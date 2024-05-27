@@ -3,6 +3,9 @@
 #include "lora.h"
 #include "driver/lora_driver.h"
 #include "api/driver_api.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/timers.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -13,6 +16,15 @@
 #define LORA_CRC CONFIG_LORA_CRC
 
 #define CONFIRMATION_TIMEOUT 5
+
+TimerHandle_t xTimer;
+volatile bool timeout_occurred = false;
+
+void noConfirmationHandler(TimerHandle_t xTimer)
+{
+    printf("Confirmation timeout.\n");
+    timeout_occurred = true;
+}
 
 lora_status_t lora_init(void)
 {
@@ -38,7 +50,6 @@ lora_status_t lora_init(void)
     lora_set_bandwidth(LORA_BANDWIDTH);
     lora_set_spreading_factor(LORA_SPREADING_FACTOR);
 
-    lora_dump_registers();
     return LORA_OK;
 }
 
@@ -72,6 +83,15 @@ lora_status_t lora_send_confirmation(lora_packet_t *packet)
     lora_packet_t receive_packet;
     lora_status_t status;
 
+    xTimer = xTimerCreate("Timer", pdMS_TO_TICKS(8000), pdFALSE, (void *)0, noConfirmationHandler);
+
+    if (xTimer == NULL)
+    {
+        // Timer creation failed
+        printf("Failed to create timer.\n");
+        return LORA_FAILED_SEND_PACKET;
+    }
+
     // Send the packet
     status = lora_send(packet);
     if (status != LORA_OK)
@@ -88,6 +108,14 @@ lora_status_t lora_send_confirmation(lora_packet_t *packet)
     int attempts = 0;
     const int max_attempts = 5;
 
+    // Start the timer
+    if (xTimerStart(xTimer, 0) != pdPASS)
+    {
+        // Timer start failed
+        printf("Failed to start timer.\n");
+        return LORA_FAILED_SEND_PACKET;
+    }
+
     while (!confirmation_received && attempts < max_attempts)
     {
         printf("Attempt %d: Waiting for confirmation...\n", attempts + 1);
@@ -97,6 +125,7 @@ lora_status_t lora_send_confirmation(lora_packet_t *packet)
             printf("Received message with ID %d\n", receive_packet.msgID);
             if (receive_packet.msgID == packet->msgID)
             {
+                xTimerStop(xTimer, 0);
                 printf("Received confirmation for message ID %d!\n", packet->msgID);
                 return LORA_OK;
             }
@@ -105,16 +134,12 @@ lora_status_t lora_send_confirmation(lora_packet_t *packet)
         {
             printf("Attempt %d: No message received. Retrying...\n", attempts + 1);
         }
-
-        // Add a delay before the next attempt
-        lora_delay(1000); // Delay for 1 second (adjust as needed)
         attempts++;
     }
 
     printf("Could not receive confirmation for message ID %d after %d attempts!\n", packet->msgID, max_attempts);
     return LORA_FAILED_RECEIVE_PACKET;
 }
-
 
 lora_status_t lora_receive(lora_packet_t *packet)
 {
@@ -123,12 +148,12 @@ lora_status_t lora_receive(lora_packet_t *packet)
     uint8_t length = 0;
 
     lora_receive_mode(); // Put into receive mode
-    lora_dump_registers();
 
     while (1)
     {
         bool hasReceived = false;
-        lora_received(&hasReceived);
+        bool crc_error = false;
+        lora_received(&hasReceived, &crc_error);
 
         if (hasReceived)
         {
@@ -149,7 +174,7 @@ lora_status_t lora_receive(lora_packet_t *packet)
 
             // @TODO Interpret the size from the dataType
             memcpy(packet->data, &buffer[META_DATA_SIZE], DATA_SIZE);
-            return LORA_OK;
+            return crc_error ? LORA_CRC_ERROR : LORA_OK;
         }
         lora_delay(20);
     }
