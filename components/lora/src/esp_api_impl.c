@@ -16,6 +16,9 @@ api_status_t spi_init(void)
 
     ret = gpio_reset_pin(CONFIG_RST_GPIO);
     ret += gpio_set_direction(CONFIG_RST_GPIO, GPIO_MODE_OUTPUT);
+
+    lora_reset();
+
     ret += gpio_reset_pin(CONFIG_CS_GPIO);
     ret += gpio_set_direction(CONFIG_CS_GPIO, GPIO_MODE_OUTPUT);
     ret += gpio_set_level(CONFIG_CS_GPIO, 1);
@@ -174,6 +177,16 @@ api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
         ESP_LOGE(LORA_API_TAG, "SPI buffer read failed: reg=0x%02X, len=%d", reg, len);
         return API_SPI_ERROR;
     }
+}
+
+void lora_reset(void)
+{
+    ESP_LOGI(LORA_API_TAG, "Resetting LoRa module...");
+    gpio_set_level(CONFIG_RST_GPIO, 0);
+    lora_delay(100);
+    gpio_set_level(CONFIG_RST_GPIO, 1);
+    lora_delay(100);
+    ESP_LOGI(LORA_API_TAG, "LoRa module reset!");
 }
 
 void lora_delay(uint32_t ms)

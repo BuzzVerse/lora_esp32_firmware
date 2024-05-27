@@ -82,7 +82,7 @@ void app_main(void)
     if (LORA_OK != lora_init())
     {
         ESP_LOGE("MAIN", "LoRa initialization failed");
-        return;
+        
     }
 
 #if CONFIG_LORA_TRANSMITTER
@@ -197,8 +197,6 @@ void task_rx(void *pvParameters)
         {
             ESP_LOGI(MQTT_TAG, "Published message with msg_id: %d", msg_id);
         }
-
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
 }
 #endif
@@ -239,7 +237,8 @@ void task_tester(void *pvParameters)
         {
             ESP_LOGI(pcTaskGetName(NULL), "Published message with msg_id: %d", msg_id);
         }
-        low_power_mode_set_sleep_time(5 * 60);
+
+        low_power_mode_set_sleep_time(5);
         low_power_mode_enter_deep_sleep();
     }
 }
