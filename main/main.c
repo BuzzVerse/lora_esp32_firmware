@@ -15,7 +15,6 @@
 #include "mqtt_client.h"
 #include "protocol_examples_common.h"
 #include "low_power_mode.h"
-#include "protocols.h"
 
 #define TAG "Main"
 
@@ -83,8 +82,7 @@ void app_main(void)
     if (LORA_OK != lora_init())
     {
         ESP_LOGE("MAIN", "LoRa initialization failed");
-        
-    }
+        }
 
 #if CONFIG_LORA_TRANSMITTER
     initialize_sensors();
@@ -135,8 +133,16 @@ void task_tx(void *pvParameters)
         ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa (stored as %d)", press_raw / 100, packet.data[1]);
         ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %% (stored as %u)", hum_raw, packet.data[2]);
 
-        lora_send(&packet);
-        ESP_LOGI(TAG, "Packet sent");
+        lora_status_t send_status = lora_send(&packet);
+
+        if (LORA_OK != send_status)
+        {
+            ESP_LOGE(TAG, "Packet send failed");
+        }
+        else
+        {
+            ESP_LOGI(TAG, "Packet sent successfully");
+        }
 
         low_power_mode_set_sleep_time(60 * 60); // 1 hour
         low_power_mode_enter_deep_sleep();

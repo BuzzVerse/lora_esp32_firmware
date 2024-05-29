@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include "driver/lora_driver.h"
-#include "packet/packet.h"
+#include "protocols/packet/packet.h"
 #include "api/driver_api.h"
 
 /**
