@@ -2,6 +2,7 @@
 
 #include "lora.h"
 #include "driver/lora_driver.h"
+#include "protocols/packet.h"
 #include "api/driver_api.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -53,7 +54,7 @@ lora_status_t lora_init(void)
     return LORA_OK;
 }
 
-lora_status_t lora_send(lora_packet_t *packet)
+lora_status_t lora_send(packet_t *packet)
 {
     // Buffer to hold the received packet
     uint8_t buffer[PACKET_SIZE] = {0};
@@ -78,9 +79,9 @@ lora_status_t lora_send(lora_packet_t *packet)
     return lora_send_packet(buffer, sizeof(buffer));
 }
 
-lora_status_t lora_send_confirmation(lora_packet_t *packet)
+lora_status_t lora_send_confirmation(packet_t *packet)
 {
-    lora_packet_t receive_packet;
+    packet_t receive_packet;
     lora_status_t status;
 
     xTimer = xTimerCreate("Timer", pdMS_TO_TICKS(8000), pdFALSE, (void *)0, noConfirmationHandler);
@@ -141,7 +142,7 @@ lora_status_t lora_send_confirmation(lora_packet_t *packet)
     return LORA_FAILED_RECEIVE_PACKET;
 }
 
-lora_status_t lora_receive(lora_packet_t *packet)
+lora_status_t lora_receive(packet_t *packet)
 {
     // Buffer to hold the received packet
     uint8_t buffer[PACKET_SIZE] = {0};
@@ -180,10 +181,10 @@ lora_status_t lora_receive(lora_packet_t *packet)
     }
 }
 
-lora_status_t lora_receive_confirmation(lora_packet_t *packet)
+lora_status_t lora_receive_confirmation(packet_t *packet)
 {
 
-    lora_packet_t confirmation_packet;
+    packet_t confirmation_packet;
 
     lora_receive(packet);
 

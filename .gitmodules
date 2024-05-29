@@ -1,3 +1,6 @@
-[submodule "components/lora/include"]
-	path = components/lora/include
+[submodule "components/lora/include/driver"]
+	path = components/lora/include/driver
 	url = https://github.com/BuzzVerse/lora.driver.git
+[submodule "components/lora/include/protocols"]
+	path = components/lora/include/protocols
+	url = https://github.com/BuzzVerse/protocols.git

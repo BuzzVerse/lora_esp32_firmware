@@ -15,6 +15,7 @@
 #include "mqtt_client.h"
 #include "protocol_examples_common.h"
 #include "low_power_mode.h"
+#include "protocols.h"
 
 #define TAG "Main"
 
@@ -69,7 +70,7 @@ static void initialize_mqtt(void)
         .broker.address.port = 1883,
         .broker.address.transport = MQTT_TRANSPORT_OVER_TCP,
         .credentials.username = "admin",
-        .credentials.authentication.password = "***REMOVED***",
+        .credentials.authentication.password = "",
     };
     mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
     esp_mqtt_client_start(mqtt_client);
@@ -108,7 +109,7 @@ void task_tx(void *pvParameters)
     ESP_LOGI(pcTaskGetName(NULL), "Start TX");
     vTaskDelay(500 / portTICK_PERIOD_MS);
 
-    lora_packet_t packet = {0};
+    packet_t packet = {0};
 
     while (1)
     {
@@ -148,7 +149,7 @@ void task_tx(void *pvParameters)
 void task_rx(void *pvParameters)
 {
     ESP_LOGI(pcTaskGetName(NULL), "Start RX");
-    lora_packet_t packet = {0};
+    packet_t packet = {0};
 
     while (1)
     {
