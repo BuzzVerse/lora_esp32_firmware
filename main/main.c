@@ -18,23 +18,9 @@
 
 #define TAG "Main"
 
-#if CONFIG_LORA_TRANSMITTER || CONFIG_TESTER
-static void initialize_sensors(void);
-#endif
-
 #if CONFIG_LORA_TRANSMITTER
 static void task_tx(void *pvParameters);
-#endif
 
-#if CONFIG_LORA_RECEIVER
-static void task_rx(void *pvParameters);
-#endif
-
-#if CONFIG_TESTER
-static void task_tester(void *pvParameters);
-#endif
-
-#if CONFIG_LORA_TRANSMITTER || CONFIG_TESTER
 static void initialize_sensors(void)
 {
     esp_err_t bme_rc = ESP_OK;
@@ -53,7 +39,8 @@ static void initialize_sensors(void)
 }
 #endif
 
-#if CONFIG_TESTER || CONFIG_LORA_RECEIVER
+#if CONFIG_LORA_RECEIVER
+static void task_rx(void *pvParameters);
 static const char *MQTT_TAG = "MQTT";
 static esp_mqtt_client_handle_t mqtt_client;
 
@@ -82,7 +69,8 @@ void app_main(void)
     if (LORA_OK != lora_init())
     {
         ESP_LOGE("MAIN", "LoRa initialization failed");
-        }
+        // Maybe add a retry mechanism here? Either for the lora only, and retry the init function, or for the whole device, and reboot it.
+    }
 
 #if CONFIG_LORA_TRANSMITTER
     initialize_sensors();
@@ -92,12 +80,6 @@ void app_main(void)
 #if CONFIG_LORA_RECEIVER
     initialize_mqtt();
     xTaskCreate(&task_rx, "RX", 1024 * 3, NULL, 5, NULL);
-#endif
-
-#if CONFIG_TESTER
-    initialize_mqtt();
-    initialize_sensors();
-    xTaskCreate(&task_tester, "Tester", 1024 * 3, NULL, 5, NULL);
 #endif
 }
 
@@ -144,7 +126,7 @@ void task_tx(void *pvParameters)
             ESP_LOGI(TAG, "Packet sent successfully");
         }
 
-        low_power_mode_set_sleep_time(60 * 60); // 1 hour
+        low_power_mode_set_sleep_time(15 * 60); // 15 minutes
         low_power_mode_enter_deep_sleep();
     }
 }
@@ -204,49 +186,6 @@ void task_rx(void *pvParameters)
         {
             ESP_LOGI(MQTT_TAG, "Published message with msg_id: %d", msg_id);
         }
-    }
-}
-#endif
-
-#if CONFIG_TESTER
-void task_tester(void *pvParameters)
-{
-    ESP_LOGI(pcTaskGetName(NULL), "Start Tester TX");
-    vTaskDelay(100 / portTICK_PERIOD_MS);
-
-    while (1)
-    {
-        uint8_t tx_buf[24];
-        bme280_read_temperature(&data.temperature.value);
-        bme280_read_pressure(&data.pressure.value);
-        bme280_read_humidity(&data.humidity.value);
-
-        ESP_LOGI(pcTaskGetName(NULL), "Temperature: %.2f C", data.temperature.value);
-        ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa", data.pressure.value / 100);
-        ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %%", data.humidity.value);
-
-        memcpy(tx_buf, data.temperature.serialized, 8);
-        memcpy(tx_buf + 8, data.pressure.serialized, 8);
-        memcpy(tx_buf + 16, data.humidity.serialized, 8);
-
-        char msg[100];
-        sprintf(msg, "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
-                data.temperature.value, data.pressure.value / 100, data.humidity.value);
-
-        ESP_LOGI(pcTaskGetName(NULL), "Publishing message: %s", msg);
-
-        int msg_id = esp_mqtt_client_publish(mqtt_client, "tele/lora/SENSOR_SPANISH", msg, 0, 1, 0);
-        if (msg_id < 0)
-        {
-            ESP_LOGE(pcTaskGetName(NULL), "Failed to publish message");
-        }
-        else
-        {
-            ESP_LOGI(pcTaskGetName(NULL), "Published message with msg_id: %d", msg_id);
-        }
-
-        low_power_mode_set_sleep_time(5);
-        low_power_mode_enter_deep_sleep();
     }
 }
 #endif

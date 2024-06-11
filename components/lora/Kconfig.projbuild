@@ -16,10 +16,6 @@ menu "LoRa Configuration"
             help
                 Transmitter puts the device into transmitting mode.
 
-        config LORA_TESTER
-            bool "Tester"
-            help
-                Tester puts the device into testing mode.
     endchoice
 
     menu "GPIO Config"
