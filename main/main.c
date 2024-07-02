@@ -15,6 +15,7 @@
 #include "mqtt_client.h"
 #include "protocol_examples_common.h"
 #include "low_power_mode.h"
+#include "gauge.h"
 
 #define TAG "Main"
 
@@ -78,7 +79,7 @@ void app_main(void)
 #endif
 
 #if CONFIG_LORA_RECEIVER
-    initialize_mqtt();
+    //initialize_mqtt();
     xTaskCreate(&task_rx, "RX", 1024 * 3, NULL, 5, NULL);
 #endif
 }
@@ -90,9 +91,14 @@ void task_tx(void *pvParameters)
     vTaskDelay(500 / portTICK_PERIOD_MS);
 
     packet_t packet = {0};
+    uint16_t voltage = 0;
+
 
     while (1)
     {
+        get_voltage(&voltage);
+        // ESP_LOGI("Gauge: ", "Voltage: %d", voltage);
+
         double temp_raw, press_raw, hum_raw;
         bme280_read_temperature(&temp_raw);
         bme280_read_pressure(&press_raw);
@@ -126,7 +132,7 @@ void task_tx(void *pvParameters)
             ESP_LOGI(TAG, "Packet sent successfully");
         }
 
-        low_power_mode_set_sleep_time(15 * 60); // 15 minutes
+        low_power_mode_set_sleep_time(5); // 15 minutes
         low_power_mode_enter_deep_sleep();
     }
 }
