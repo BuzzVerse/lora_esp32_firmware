@@ -126,8 +126,8 @@ void task_tx(void *pvParameters)
             ESP_LOGI(TAG, "Packet sent successfully");
         }
 
-        low_power_mode_set_sleep_time(15 * 60); // 15 minutes
-        low_power_mode_enter_deep_sleep();
+        // low_power_mode_set_sleep_time(15 * 60); // 15 minutes
+        // low_power_mode_enter_deep_sleep();
     }
 }
 

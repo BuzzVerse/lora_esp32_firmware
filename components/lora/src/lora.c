@@ -19,8 +19,9 @@
 #define LORA_SPREADING_FACTOR CONFIG_LORA_SPREADING_FACTOR
 #define LORA_CRC CONFIG_LORA_CRC
 
-#define SEND_TIMEOUT 15000 // Adjusted to milliseconds
+#define SEND_TIMEOUT 15000        // Adjusted to milliseconds
 #define CONFIRMATION_TIMEOUT 5000 // Adjusted to milliseconds
+#define LORA_DELAY_20MS 20
 
 TimerHandle_t sendTimer;
 volatile bool timeout_occurred = false;
@@ -52,11 +53,11 @@ void lora_send_task(void *pvParameters)
 
 void pack_packet(uint8_t *buffer, packet_t *packet)
 {
-    buffer[0] = packet->version;
-    buffer[1] = packet->id;
-    buffer[2] = packet->msgID;
-    buffer[3] = packet->msgCount;
-    buffer[4] = packet->dataType;
+    buffer[PACKET_VERSION_IDX] = packet->version;
+    buffer[PACKET_ID_IDX] = packet->id;
+    buffer[PACKET_MSG_ID_IDX] = packet->msgID;
+    buffer[PACKET_MSG_COUNT_IDX] = packet->msgCount;
+    buffer[PACKET_DATA_TYPE_IDX] = packet->dataType;
     memcpy(&buffer[META_DATA_SIZE], packet->data, DATA_SIZE);
 }
 
@@ -185,6 +186,6 @@ lora_status_t lora_receive(packet_t *packet)
             memcpy(packet->data, &buffer[META_DATA_SIZE], DATA_SIZE);
             return crc_error ? LORA_CRC_ERROR : LORA_OK;
         }
-        lora_delay(20);
+        lora_delay(LORA_DELAY_20MS);
     }
 }

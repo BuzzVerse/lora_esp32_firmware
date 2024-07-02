@@ -31,6 +31,9 @@ esp_err_t i2c_master_init(void)
         .master.clk_speed = 1000000             // Clock speed (1 MHz)
     };
 
+    gpio_set_direction(CONFIG_I2C_MASTER_ENABLED, GPIO_MODE_OUTPUT);
+    gpio_set_level(CONFIG_I2C_MASTER_ENABLED, 1);
+
     // Configure I2C parameters
     esp_rc = i2c_param_config(I2C_NUM_0, &i2c_config);
 
