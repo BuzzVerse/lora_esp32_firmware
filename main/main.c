@@ -15,6 +15,7 @@
 #include "mqtt_client.h"
 #include "protocol_examples_common.h"
 #include "low_power_mode.h"
+#include "crypto.h"
 
 #define TAG "Main"
 
@@ -59,7 +60,7 @@ static void initialize_mqtt(void)
         .broker.address.port = 1883,
         .broker.address.transport = MQTT_TRANSPORT_OVER_TCP,
         .credentials.username = "admin",
-        .credentials.authentication.password = "",
+        .credentials.authentication.password = "***REMOVED***",
     };
 
     mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
@@ -69,25 +70,53 @@ static void initialize_mqtt(void)
 
 void app_main(void)
 {
-    ESP_LOGI("MAIN", "Initializing LoRa");
-    if (LORA_OK != lora_init())
+    uint8_t plaintext[] = "This is a test.";
+    size_t plaintext_size = sizeof(plaintext);
+    uint8_t ciphertext[plaintext_size];
+    uint8_t decryptedtext[plaintext_size];
+    uint8_t iv[16] = {0}; // Initial nonce counter
+
+    // Encrypt
+    crypto_status_t status = crypto_crypt(plaintext, plaintext_size, ciphertext, iv, CRYPTO_OPERATION_ENCRYPT);
+
+    // Decrypt
+    status = crypto_crypt(ciphertext, plaintext_size, decryptedtext, iv, CRYPTO_OPERATION_DECRYPT);
+
+    // Check if decrypted text matches the original plaintext
+    bool match = true;
+    for (size_t i = 0; i < plaintext_size; i++)
     {
-        ESP_LOGE("MAIN", "LoRa initialization failed");
-        // Maybe add a retry mechanism here? Either for the lora only, and retry the init function, or for the whole device, and reboot it.
+        if (plaintext[i] != decryptedtext[i])
+        {
+            match = false;
+            break;
+        }
     }
 
-#if CONFIG_LORA_TRANSMITTER
-    initialize_sensors();
-    xTaskCreate(&task_tx, "TX", 1024 * 3, NULL, 5, NULL);
-#endif
+    if (match)
+        ESP_LOGI(TAG, "Decryption successful, texts match!");
+    else
+        ESP_LOGE(TAG, "Decryption failed, texts do not match!");
 
-#if CONFIG_LORA_RECEIVER && CONFIG_ENABLE_MQTT
-    initialize_mqtt();
-#endif
+    //     ESP_LOGI("MAIN", "Initializing LoRa");
+    //     if (LORA_OK != lora_init())
+    //     {
+    //         ESP_LOGE("MAIN", "LoRa initialization failed");
+    //         // Maybe add a retry mechanism here? Either for the lora only, and retry the init function, or for the whole device, and reboot it.
+    //     }
 
-#if CONFIG_LORA_RECEIVER
-    xTaskCreate(&task_rx, "RX", 1024 * 3, NULL, 5, NULL);
-#endif
+    // #if CONFIG_LORA_TRANSMITTER
+    //     initialize_sensors();
+    //     xTaskCreate(&task_tx, "TX", 1024 * 3, NULL, 5, NULL);
+    // #endif
+
+    // #if CONFIG_LORA_RECEIVER && CONFIG_ENABLE_MQTT
+    //     initialize_mqtt();
+    // #endif
+
+    // #if CONFIG_LORA_RECEIVER
+    //     xTaskCreate(&task_rx, "RX", 1024 * 3, NULL, 5, NULL);
+    // #endif
 }
 
 #if CONFIG_LORA_TRANSMITTER

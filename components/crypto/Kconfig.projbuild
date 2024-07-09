@@ -1,0 +1,9 @@
+menu "Crypto configuration"
+    depends on ENABLE_CRYPTO
+
+    config CRYPTO_KEY
+        string "Key"
+        default "1234567890123456"
+        help
+          Key for encryption/decryption
+endmenu

@@ -34,5 +34,11 @@ menu "App Configuration"
             default y
             help
                 Enable or disable sending received packet over MQTT.
+    
+    config ENABLE_CRYPTO
+        bool "Enable encryption/decryption"
+        default n
+        help
+            Enable or disable encryption/decryption in the app.
 
 endmenu
