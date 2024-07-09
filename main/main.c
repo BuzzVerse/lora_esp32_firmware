@@ -31,10 +31,8 @@ static void initialize_sensors(void)
     if (ESP_OK != bme_rc)
     {
         ESP_LOGE("BME", "BME280 settings failed");
-        while (1)
-        {
-            vTaskDelay(1);
-        }
+        // not sure if this should restart, but also not sure what else to do here?
+        esp_restart();
     }
 }
 #endif
@@ -73,7 +71,8 @@ void app_main(void)
     if (LORA_OK != lora_init())
     {
         ESP_LOGE("MAIN", "LoRa initialization failed");
-        // Maybe add a retry mechanism here? Either for the lora only, and retry the init function, or for the whole device, and reboot it.
+        // not sure if this should restart, but also not sure what else to do here?
+        esp_restart();
     }
 
 #if CONFIG_LORA_TRANSMITTER
