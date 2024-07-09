@@ -38,22 +38,4 @@ lora_status_t lora_send(packet_t *packet);
  */
 lora_status_t lora_receive(packet_t *packet);
 
-/**
- * @brief Send a packet and wait for a confirmation.
- * 
- * @details This function sends a packet and waits for a confirmation from the receiver.
- * 
- * @param packet Pointer to the LoRa packet to be sent.
- */
-lora_status_t lora_send_confirmation(packet_t *packet);
-
-/**
- * @brief Receive a packet and send a confirmation.
- * 
- * @details This function receives a packet and sends a confirmation to the sender.
- * 
- * @param packet Pointer to the LoRa packet structure to store the received data. 
- */
-lora_status_t lora_receive_confirmation(packet_t *packet);
-
 #endif // LORA_H
