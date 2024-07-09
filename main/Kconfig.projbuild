@@ -28,4 +28,11 @@ menu "App Configuration"
         help
             Type of data to be sent.
 
+    config ENABLE_MQTT
+            bool "Enable MQTT"
+            depends on LORA_RECEIVER
+            default y
+            help
+                Enable or disable sending received packet over MQTT.
+
 endmenu

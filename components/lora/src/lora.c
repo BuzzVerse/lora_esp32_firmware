@@ -4,14 +4,15 @@
 #include "driver/lora_driver.h"
 #include "protocols/packet/packet.h"
 #include "api/driver_api.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/timers.h"
+
 #include <string.h>
 #include <stdio.h>
 
 // Remove if wanting to make lora.c HAL independent
 #include "esp_system.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/timers.h"
 
 #define LORA_FREQUENCY (CONFIG_LORA_FREQUENCY * 1e6)
 #define LORA_CODING_RATE CONFIG_LORA_CODING_RATE
@@ -31,18 +32,20 @@ TaskHandle_t mainTaskHandle = NULL;
 
 void pack_packet(uint8_t *buffer, packet_t *packet);
 void print_buffer(uint8_t *buffer, size_t size);
+size_t get_packet_size(DataType type);
 
 void lora_send_task(void *pvParameters)
 {
     packet_t *packet = (packet_t *)pvParameters;
     uint8_t buffer[PACKET_SIZE] = {0};
+    size_t packet_size = get_packet_size(packet->dataType) + META_DATA_SIZE;
 
     pack_packet(buffer, packet);
 
-    print_buffer(buffer, sizeof(buffer));
+    print_buffer(buffer, packet_size);
 
     // Send the packet using the HAL function
-    lora_send_packet(buffer, sizeof(buffer));
+    lora_send_packet(buffer, packet_size);
 
     // Notify the main task of completion
     xTaskNotifyGive(mainTaskHandle);
@@ -162,6 +165,8 @@ lora_status_t lora_receive(packet_t *packet)
 {
     uint8_t buffer[PACKET_SIZE] = {0};
     uint8_t length = 0;
+    uint8_t rssi = 0;
+    uint8_t snr = 0;
 
     lora_receive_mode();
 
@@ -169,13 +174,20 @@ lora_status_t lora_receive(packet_t *packet)
     {
         bool hasReceived = false;
         bool crc_error = false;
+
         lora_received(&hasReceived, &crc_error);
 
         if (hasReceived)
         {
             lora_receive_packet(buffer, &length, sizeof(buffer));
 
+            lora_packet_rssi(&rssi);
+            lora_packet_snr(&snr);
+
             print_buffer(buffer, sizeof(buffer));
+
+            printf("RSSI: %d \n", rssi);
+            printf("SNR: %d \n", snr);
 
             packet->version = buffer[0];
             packet->id = buffer[1];
@@ -187,5 +199,24 @@ lora_status_t lora_receive(packet_t *packet)
             return crc_error ? LORA_CRC_ERROR : LORA_OK;
         }
         lora_delay(LORA_DELAY_20MS);
+    }
+}
+
+size_t get_packet_size(DataType type)
+{
+    switch (type)
+    {
+    case BME280:
+        return 3; // 1B temp, 1B hum, 1B pres
+    case BMA400:
+        return 24; // 8B x-axis, 8B y-axis, 8B z-axis
+    case MQ2:
+        return 17; // 1B gas type, 16B value
+    case GPS:
+        return 16; // 8B longitude, 8B latitude
+    case SMS:
+        return 9; // Max 59B String
+    default:
+        return 0; // Unsupported type
     }
 }
