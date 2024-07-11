@@ -79,7 +79,7 @@ void app_main(void)
 #endif
 
 #if CONFIG_LORA_RECEIVER
-    //initialize_mqtt();
+    initialize_mqtt();
     xTaskCreate(&task_rx, "RX", 1024 * 3, NULL, 5, NULL);
 #endif
 }
@@ -121,8 +121,8 @@ void task_tx(void *pvParameters)
         packet.data[0] = (int8_t)(temp_raw * 2);             // Scale temperature for higher precision and fit into int8_t
         packet.data[1] = (int8_t)((press_raw / 100) - 1000); // Convert Pa to hPa, subtract 1000
         packet.data[2] = (uint8_t)hum_raw;                   // Fit humidity into uint8_t
-        packet.data[3] = (voltage >> 8) & 0xFF; // High byte
-        packet.data[4] = voltage & 0xFF;                                // Reserved for future use
+        packet.data[3] = (voltage >> 8) & 0xFF;              // High byte
+        packet.data[4] = voltage & 0xFF;                     // Low byte
 
 
         // Log the packet data before sending
@@ -142,7 +142,7 @@ void task_tx(void *pvParameters)
             ESP_LOGI(TAG, "Packet sent successfully");
         }
 
-        low_power_mode_set_sleep_time(5); // 15 minutes
+        low_power_mode_set_sleep_time(15 * 60); // 15 minutes
         low_power_mode_enter_deep_sleep();
     }
 }
