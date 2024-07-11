@@ -60,7 +60,7 @@ static void initialize_mqtt(void)
         .broker.address.port = 1883,
         .broker.address.transport = MQTT_TRANSPORT_OVER_TCP,
         .credentials.username = "admin",
-        .credentials.authentication.password = "***REMOVED***",
+        .credentials.authentication.password = "",
     };
 
     mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
