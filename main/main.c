@@ -24,7 +24,7 @@ static void task_tx(void *pvParameters);
 
 static void initialize_sensors(void)
 {
-    esp_err_t bme_rc = ESP_OK;
+    esp_err_t bme_rc = ESP_OK;       
     bme_rc += bme280_init_driver(CONFIG_BME280_I2C_ADDRESS);
     bme_rc += bme280_set_oversamp(BME280_OVERSAMP_16X, BME280_OVERSAMP_16X, BME280_OVERSAMP_16X);
     bme_rc += bme280_set_settings(STANDBY_10MS, BME280_FILTER_COEFF_16, BME280_NORMAL_MODE);
@@ -95,9 +95,9 @@ void task_tx(void *pvParameters)
 
 
     while (1)
-    {
-        get_voltage(&voltage);
-        // ESP_LOGI("Gauge: ", "Voltage: %d", voltage);
+    {   
+
+
 
         double temp_raw, press_raw, hum_raw;
         bme280_read_temperature(&temp_raw);
@@ -110,16 +110,26 @@ void task_tx(void *pvParameters)
         packet.msgID = 1;                   // Example message ID
         packet.msgCount = 1;                // Example message count (optional, set as needed)
         packet.dataType = CONFIG_DATA_TYPE; // Example data type
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        get_voltage(&voltage);
+        ESP_LOGI("Gauge: ", "Voltage: %d", voltage);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+        
 
         // Convert raw sensor readings
         packet.data[0] = (int8_t)(temp_raw * 2);             // Scale temperature for higher precision and fit into int8_t
         packet.data[1] = (int8_t)((press_raw / 100) - 1000); // Convert Pa to hPa, subtract 1000
         packet.data[2] = (uint8_t)hum_raw;                   // Fit humidity into uint8_t
+        packet.data[3] = (voltage >> 8) & 0xFF; // High byte
+        packet.data[4] = voltage & 0xFF;                                // Reserved for future use
+
 
         // Log the packet data before sending
         ESP_LOGI(pcTaskGetName(NULL), "Temperature: %.2f C (scaled to %d)", temp_raw, packet.data[0]);
         ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa (stored as %d)", press_raw / 100, packet.data[1]);
         ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %% (stored as %u)", hum_raw, packet.data[2]);
+        ESP_LOGI(pcTaskGetName(NULL), "Voltage: %d", voltage);
 
         lora_status_t send_status = lora_send(&packet);
 
@@ -144,11 +154,17 @@ void task_rx(void *pvParameters)
 {
     ESP_LOGI(pcTaskGetName(NULL), "Start RX");
     packet_t packet = {0};
+    uint16_t voltage = 0;
 
     while (1)
     {
+
         lora_status_t status;
         status = lora_receive(&packet);
+
+        voltage = (uint8_t)packet.data[3]; // High byte
+        voltage = voltage << 8;
+        voltage |= (uint8_t)packet.data[4];
 
         // Unpack and log the received data
         float received_temp = ((float)((int8_t)packet.data[0]) / 2.0);
@@ -159,6 +175,7 @@ void task_rx(void *pvParameters)
         ESP_LOGI(pcTaskGetName(NULL), "Received Temp: %.2f C", received_temp);
         ESP_LOGI(pcTaskGetName(NULL), "Received Pressure: %.2f hPa", received_press);
         ESP_LOGI(pcTaskGetName(NULL), "Received Humidity: %.2f %%", received_hum);
+        ESP_LOGI(pcTaskGetName(NULL), "Received Voltage: %d", voltage);
 
         printf("\n");
 

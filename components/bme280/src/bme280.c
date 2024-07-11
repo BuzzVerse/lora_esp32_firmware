@@ -129,7 +129,7 @@ esp_err_t i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_
     }
 }
 
-// Function to provide millisecond delay
+// Function to provide millisecond delay    
 void delay_ms(uint32_t ticks)
 {
     vTaskDelay(ticks / portTICK_PERIOD_MS);
