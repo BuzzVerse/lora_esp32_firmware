@@ -10,6 +10,7 @@
 
 // Remove if wanting to make lora.c HAL independent
 #include "esp_system.h"
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/timers.h"
@@ -66,7 +67,7 @@ void pack_packet(uint8_t *buffer, packet_t *packet)
 
 void print_buffer(uint8_t *buffer, size_t size)
 {
-    printf("\n");
+    printf("BUFFER: \n");
     for (size_t i = 0; i < size; i++)
     {
         printf("0x%x ", buffer[i]);
@@ -76,7 +77,7 @@ void print_buffer(uint8_t *buffer, size_t size)
 
 void sendPacketTimeoutHandler(TimerHandle_t xTimer)
 {
-    printf("Send packet timeout.\n");
+    ESP_LOGE(LORA_TAG, "Send packet timeout.\n");
     timeout_occurred = true;
 
     if (sendTaskHandle != NULL)
@@ -92,22 +93,22 @@ void sendPacketTimeoutHandler(TimerHandle_t xTimer)
 
 void noConfirmationHandler(TimerHandle_t xTimer)
 {
-    printf("Confirmation timeout.\n");
+    ESP_LOGE(LORA_TAG, "Confirmation timeout.\n");
     timeout_occurred = true;
     xTimerStop(xTimer, 0);
 }
 
 lora_status_t lora_init(void)
 {
-    printf("FREQ: %f\n", LORA_FREQUENCY);
-    printf("CODING RATE: %d\n", LORA_CODING_RATE);
-    printf("BANDWIDTH: %d\n", LORA_BANDWIDTH);
-    printf("SPREADING FACTOR: %d\n", LORA_SPREADING_FACTOR);
-    printf("CRC: %d\n", LORA_CRC);
+    ESP_LOGI(LORA_TAG, "FREQ: %f", LORA_FREQUENCY);
+    ESP_LOGI(LORA_TAG, "CODING RATE: %d", LORA_CODING_RATE);
+    ESP_LOGI(LORA_TAG, "BANDWIDTH: %d", LORA_BANDWIDTH);
+    ESP_LOGI(LORA_TAG, "SPREADING FACTOR: %d", LORA_SPREADING_FACTOR);
+    ESP_LOGI(LORA_TAG, "CRC: %d", LORA_CRC);
 
     if (LORA_OK != lora_driver_init())
     {
-        printf("LoRa initialization failed\n");
+        ESP_LOGE(LORA_TAG, "LoRa initialization failed\n");
         esp_restart();
     }
 
@@ -129,7 +130,7 @@ lora_status_t lora_send(packet_t *packet)
 
     if (sendTimer == NULL)
     {
-        printf("Failed to create timer.\n");
+        ESP_LOGE(LORA_TAG, "Failed to create timer.\n");
         return LORA_FAILED_SEND_PACKET;
     }
 
@@ -139,13 +140,13 @@ lora_status_t lora_send(packet_t *packet)
 
     if (xReturned != pdPASS)
     {
-        printf("Failed to create send task.\n");
+        ESP_LOGE(LORA_TAG, "Failed to create send task.\n");
         return LORA_FAILED_SEND_PACKET;
     }
 
     if (xTimerStart(sendTimer, 0) != pdPASS)
     {
-        printf("Failed to start timer.\n");
+        ESP_LOGE(LORA_TAG, "Failed to start timer.\n");
         return LORA_FAILED_SEND_PACKET;
     }
 
@@ -186,14 +187,14 @@ lora_status_t lora_receive(packet_t *packet)
 
             print_buffer(buffer, sizeof(buffer));
 
-            printf("RSSI: %d \n", rssi);
-            printf("SNR: %d \n", snr);
+            ESP_LOGE(LORA_TAG, "RSSI: %d", rssi);
+            ESP_LOGE(LORA_TAG, "SNR: %d", snr);
 
-            packet->version = buffer[0];
-            packet->id = buffer[1];
-            packet->msgID = buffer[2];
-            packet->msgCount = buffer[3];
-            packet->dataType = buffer[4];
+            packet->version = buffer[PACKET_VERSION_IDX];
+            packet->id = buffer[PACKET_ID_IDX];
+            packet->msgID = buffer[PACKET_MSG_ID_IDX];
+            packet->msgCount = buffer[PACKET_MSG_COUNT_IDX];
+            packet->dataType = buffer[PACKET_DATA_TYPE_IDX];
 
             memcpy(packet->data, &buffer[META_DATA_SIZE], DATA_SIZE);
             return crc_error ? LORA_CRC_ERROR : LORA_OK;
@@ -215,7 +216,7 @@ size_t get_packet_size(DataType type)
     case GPS:
         return 16; // 8B longitude, 8B latitude
     case SMS:
-        return 9; // Max 59B String
+        return 59; // Max 59B String
     default:
         return 0; // Unsupported type
     }
