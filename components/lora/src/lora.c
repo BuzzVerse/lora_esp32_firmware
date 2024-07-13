@@ -20,6 +20,7 @@
 #define LORA_BANDWIDTH CONFIG_LORA_BANDWIDTH
 #define LORA_SPREADING_FACTOR CONFIG_LORA_SPREADING_FACTOR
 #define LORA_CRC CONFIG_LORA_CRC
+#define LORA_POWER CONFIG_TX_POWER
 
 #define SEND_TIMEOUT 15000        // Adjusted to milliseconds
 #define CONFIRMATION_TIMEOUT 5000 // Adjusted to milliseconds
@@ -105,6 +106,7 @@ lora_status_t lora_init(void)
     ESP_LOGI(LORA_TAG, "BANDWIDTH: %d", LORA_BANDWIDTH);
     ESP_LOGI(LORA_TAG, "SPREADING FACTOR: %d", LORA_SPREADING_FACTOR);
     ESP_LOGI(LORA_TAG, "CRC: %d", LORA_CRC);
+    ESP_LOGI(LORA_TAG, "TRANSMIT POWER: %d", LORA_POWER);
 
     if (LORA_OK != lora_driver_init())
     {
@@ -113,6 +115,8 @@ lora_status_t lora_init(void)
     }
 
     lora_set_frequency(LORA_FREQUENCY);
+    lora_set_tx_power(LORA_POWER);
+    
     if (LORA_CRC)
     {
         lora_enable_crc();

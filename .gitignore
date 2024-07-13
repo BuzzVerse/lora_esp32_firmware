@@ -45,3 +45,4 @@ docs/html/**
 .ionide
 
 logs
+snyk-macos

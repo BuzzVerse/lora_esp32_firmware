@@ -17,11 +17,21 @@ api_status_t spi_init(void)
     ret = gpio_reset_pin(CONFIG_RST_GPIO);
     ret += gpio_set_direction(CONFIG_RST_GPIO, GPIO_MODE_OUTPUT);
 
+    if (ESP_OK != ret)
+        return API_FAILED_SPI_SET_PIN;
+
     lora_reset();
 
     ret += gpio_reset_pin(CONFIG_CS_GPIO);
     ret += gpio_set_direction(CONFIG_CS_GPIO, GPIO_MODE_OUTPUT);
+
+    if (ESP_OK != ret)
+        return API_FAILED_SPI_SET_PIN;
+
     ret += gpio_set_level(CONFIG_CS_GPIO, 1);
+
+    if (ESP_OK != ret)
+        return API_FAILED_SPI_CHIP_SELECT;
 
     spi_bus_config_t bus = {
         .miso_io_num = CONFIG_MISO_GPIO,
@@ -33,6 +43,9 @@ api_status_t spi_init(void)
 
     ret += spi_bus_initialize(SPI2_HOST, &bus, SPI_DMA_CH_AUTO);
 
+    if (ESP_OK != ret)
+        return API_FAILED_SPI_INIT;
+
     spi_device_interface_config_t dev = {
         .clock_speed_hz = 9000000,
         .mode = 0,
@@ -43,16 +56,11 @@ api_status_t spi_init(void)
 
     ret += spi_bus_add_device(SPI2_HOST, &dev, &__spi);
 
-    if (ESP_OK == ret)
-    {
-        ESP_LOGI(LORA_API_TAG, "SPI initialized successfully");
-        return API_OK;
-    }
-    else
-    {
-        ESP_LOGE(LORA_API_TAG, "SPI initialization failed");
-        return API_SPI_ERROR;
-    }
+    if (ESP_OK != ret)
+        return API_FAILED_SPI_ADD_DEVICE;
+
+    ESP_LOGI(LORA_API_TAG, "SPI initialized successfully");
+    return API_OK;
 }
 
 api_status_t spi_write(uint8_t reg, uint8_t val)
@@ -60,13 +68,13 @@ api_status_t spi_write(uint8_t reg, uint8_t val)
     uint8_t out[2] = {0x80 | reg, val};
     uint8_t in[2];
 
-    spi_transaction_t t = {
+    spi_transaction_t transaction = {
         .flags = 0,
         .length = 8 * sizeof(out),
         .tx_buffer = out,
         .rx_buffer = in};
 
-    if (ESP_OK == spi_device_transmit(__spi, &t))
+    if (ESP_OK == spi_device_transmit(__spi, &transaction))
     {
         return API_OK;
     }
@@ -89,13 +97,13 @@ api_status_t spi_write_buf(uint8_t reg, uint8_t *val, uint16_t len)
         out[i + 1] = val[i];
     }
 
-    spi_transaction_t t = {
+    spi_transaction_t transaction = {
         .flags = 0,
         .length = 8 * (len + 1),
         .tx_buffer = out,
         .rx_buffer = NULL};
 
-    ret = spi_device_transmit(__spi, &t);
+    ret = spi_device_transmit(__spi, &transaction);
     free(out);
 
     if (ESP_OK == ret)
@@ -116,13 +124,13 @@ api_status_t spi_read(uint8_t reg, uint8_t *val)
     uint8_t in[2];
     esp_err_t ret;
 
-    spi_transaction_t t = {
+    spi_transaction_t transaction = {
         .flags = 0,
         .length = 8 * sizeof(out),
         .tx_buffer = out,
         .rx_buffer = in};
 
-    ret = spi_device_transmit(__spi, &t);
+    ret = spi_device_transmit(__spi, &transaction);
     *val = in[1];
 
     if (ESP_OK == ret)
@@ -151,13 +159,13 @@ api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
         out[i + 1] = 0xff;
     }
 
-    spi_transaction_t t = {
+    spi_transaction_t transaction = {
         .flags = 0,
         .length = 8 * (len + 1),
         .tx_buffer = out,
         .rx_buffer = in};
 
-    ret = spi_device_transmit(__spi, &t);
+    ret = spi_device_transmit(__spi, &transaction);
 
     for (uint8_t i = 0; i < len; i++)
     {
