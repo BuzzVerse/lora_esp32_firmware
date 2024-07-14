@@ -6,6 +6,9 @@
 #include "esp_log.h"
 #include "driver/gpio.h"
 
+#define SPI_WRITE_OPERATION 0x80
+#define SPI_DELAY_100MS 100
+
 static spi_device_handle_t __spi;
 static const char *LORA_API_TAG = "LORA_API";
 
@@ -65,7 +68,7 @@ api_status_t spi_init(void)
 
 api_status_t spi_write(uint8_t reg, uint8_t val)
 {
-    uint8_t out[2] = {0x80 | reg, val};
+    uint8_t out[2] = {SPI_WRITE_OPERATION | reg, val};
     uint8_t in[2];
 
     spi_transaction_t transaction = {
@@ -74,24 +77,27 @@ api_status_t spi_write(uint8_t reg, uint8_t val)
         .tx_buffer = out,
         .rx_buffer = in};
 
-    if (ESP_OK == spi_device_transmit(__spi, &transaction))
-    {
-        return API_OK;
-    }
-    else
+    if (ESP_OK != spi_device_transmit(__spi, &transaction))
     {
         ESP_LOGE(LORA_API_TAG, "SPI write failed: reg=0x%02X, val=0x%02X", reg, val);
-        return API_SPI_ERROR;
+        return API_FAILED_SPI_WRITE;
     }
+
+    return API_OK;
 }
 
 api_status_t spi_write_buf(uint8_t reg, uint8_t *val, uint16_t len)
 {
+    if (val == NULL)
+    {
+        ESP_LOGE(LORA_API_TAG, "Cannot assign value to NULL pointer");
+        return API_NULL_POINTER_ERROR;
+    }
+
     uint8_t *out;
-    esp_err_t ret;
 
     out = (uint8_t *)malloc(len + 1);
-    out[0] = 0x80 | reg;
+    out[0] = SPI_WRITE_OPERATION | reg;
     for (uint8_t i = 0; i < len; i++)
     {
         out[i + 1] = val[i];
@@ -103,26 +109,29 @@ api_status_t spi_write_buf(uint8_t reg, uint8_t *val, uint16_t len)
         .tx_buffer = out,
         .rx_buffer = NULL};
 
-    ret = spi_device_transmit(__spi, &transaction);
-    free(out);
-
-    if (ESP_OK == ret)
-    {
-        ESP_LOGD(LORA_API_TAG, "SPI buffer write successful: reg=0x%02X, len=%d", reg, len);
-        return API_OK;
-    }
-    else
+    if (ESP_OK != spi_device_transmit(__spi, &transaction))
     {
         ESP_LOGE(LORA_API_TAG, "SPI buffer write failed: reg=0x%02X, len=%d", reg, len);
-        return API_SPI_ERROR;
+        free(out);
+        return API_FAILED_SPI_WRITE_BUF;
     }
+
+    free(out);
+
+    ESP_LOGD(LORA_API_TAG, "SPI buffer write successful: reg=0x%02X, len=%d", reg, len);
+    return API_OK;
 }
 
 api_status_t spi_read(uint8_t reg, uint8_t *val)
 {
+    if (val == NULL)
+    {
+        ESP_LOGE(LORA_API_TAG, "Cannot assign value to NULL pointer");
+        return API_NULL_POINTER_ERROR;
+    }
+
     uint8_t out[2] = {reg, 0xff};
     uint8_t in[2];
-    esp_err_t ret;
 
     spi_transaction_t transaction = {
         .flags = 0,
@@ -130,25 +139,26 @@ api_status_t spi_read(uint8_t reg, uint8_t *val)
         .tx_buffer = out,
         .rx_buffer = in};
 
-    ret = spi_device_transmit(__spi, &transaction);
-    *val = in[1];
-
-    if (ESP_OK == ret)
-    {
-        return API_OK;
-    }
-    else
+    if (ESP_OK != spi_device_transmit(__spi, &transaction))
     {
         ESP_LOGE(LORA_API_TAG, "SPI read failed: reg=0x%02X", reg);
-        return API_SPI_ERROR;
+        return API_FAILED_SPI_READ;
     }
+
+    *val = in[1];
+    return API_OK;
 }
 
 api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
 {
+    if (val == NULL)
+    {
+        ESP_LOGE(LORA_API_TAG, "Cannot assign value to NULL pointer");
+        return API_NULL_POINTER_ERROR;
+    }
+
     uint8_t *out;
     uint8_t *in;
-    esp_err_t ret;
 
     out = (uint8_t *)malloc(len + 1);
     in = (uint8_t *)malloc(len + 1);
@@ -165,7 +175,13 @@ api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
         .tx_buffer = out,
         .rx_buffer = in};
 
-    ret = spi_device_transmit(__spi, &transaction);
+    if (ESP_OK != spi_device_transmit(__spi, &transaction))
+    {
+        ESP_LOGE(LORA_API_TAG, "SPI buffer read failed: reg=0x%02X, len=%d", reg, len);
+        free(out);
+        free(in);
+        return API_FAILED_SPI_READ_BUF;
+    }
 
     for (uint8_t i = 0; i < len; i++)
     {
@@ -175,25 +191,26 @@ api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
     free(out);
     free(in);
 
-    if (ESP_OK == ret)
-    {
-        ESP_LOGD(LORA_API_TAG, "SPI buffer read successful: reg=0x%02X, len=%d", reg, len);
-        return API_OK;
-    }
-    else
-    {
-        ESP_LOGE(LORA_API_TAG, "SPI buffer read failed: reg=0x%02X, len=%d", reg, len);
-        return API_SPI_ERROR;
-    }
+    ESP_LOGD(LORA_API_TAG, "SPI buffer read successful: reg=0x%02X, len=%d", reg, len);
+    return API_OK;
 }
 
-void lora_reset(void)
+api_status_t lora_reset(void)
 {
+    api_status_t ret;
     ESP_LOGI(LORA_API_TAG, "Resetting LoRa module...");
-    gpio_set_level(CONFIG_RST_GPIO, 0);
-    lora_delay(100);
-    gpio_set_level(CONFIG_RST_GPIO, 1);
-    lora_delay(100);
+
+    ret += gpio_set_level(CONFIG_RST_GPIO, 0);
+    lora_delay(SPI_DELAY_100MS);
+
+    ret += gpio_set_level(CONFIG_RST_GPIO, 1);
+    lora_delay(SPI_DELAY_100MS);
+
+    if (ESP_OK != ret)
+    {
+        ESP_LOGE(LORA_API_TAG, "Failed to reset LoRa module");
+        return API_FAILED_SPI_SET_LEVEL;
+    }
     ESP_LOGI(LORA_API_TAG, "LoRa module reset!");
 }
 

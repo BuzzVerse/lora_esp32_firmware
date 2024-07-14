@@ -24,7 +24,6 @@
 
 #define SEND_TIMEOUT 15000        // Adjusted to milliseconds
 #define CONFIRMATION_TIMEOUT 5000 // Adjusted to milliseconds
-#define LORA_DELAY_20MS 20
 
 TimerHandle_t sendTimer;
 volatile bool timeout_occurred = false;
