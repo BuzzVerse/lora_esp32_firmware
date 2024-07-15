@@ -210,7 +210,7 @@ void task_rx(void *pvParameters)
         else if (SMS == packet.dataType)
         {
             // Unpack and log the received data
-            char received_data[MAX_SMS_LENGTH];
+            char received_data[DATA_SIZE];
             for (int i = 0; i < sizeof(received_data); i++)
             {
                 received_data[i] = packet.data[i];
