@@ -150,7 +150,7 @@ lora_status_t lora_send(packet_t *packet)
     if (NULL == packet)
     {
         ESP_LOGE(LORA_TAG, "Buffer or packet is NULL.\n");
-        return;
+        return LORA_FAILED_SEND_PACKET;
     }
 
     sendTimer = xTimerCreate("SendTimer", pdMS_TO_TICKS(SEND_TIMEOUT), pdFALSE, (void *)0, sendPacketTimeoutHandler);
@@ -194,7 +194,7 @@ lora_status_t lora_receive(packet_t *packet)
     if (NULL == packet)
     {
         ESP_LOGE(LORA_TAG, "Packet is NULL.\n");
-        return;
+        return LORA_FAILED_RECEIVE_PACKET;
     }
 
     uint8_t buffer[PACKET_SIZE] = {0};

@@ -197,7 +197,7 @@ api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
 
 api_status_t lora_reset(void)
 {
-    api_status_t ret;
+    api_status_t ret = API_OK;
     ESP_LOGI(LORA_API_TAG, "Resetting LoRa module...");
 
     ret += gpio_set_level(CONFIG_RST_GPIO, 0);

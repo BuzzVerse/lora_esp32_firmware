@@ -154,7 +154,7 @@ esp_err_t bme280_init_driver(uint8_t dev_addr)
     // Check if the initialization was successful
     if (SUCCESS != bme280_init(&bme280))
     {
-        ESP_LOGE(TAG_BME280, "BME280 init failed. code: %d", com_rslt);
+        ESP_LOGE(TAG_BME280, "BME280 init failed.");
         return ESP_FAIL;
     }
 

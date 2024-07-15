@@ -16,7 +16,7 @@
 #include "protocol_examples_common.h"
 #include "low_power_mode.h"
 
-#define TAG "Main"
+#define TAG_MAIN "Main"
 
 #if CONFIG_LORA_TRANSMITTER
 static void task_tx(void *pvParameters);
@@ -49,7 +49,6 @@ static void task_rx(void *pvParameters);
 
 #if CONFIG_LORA_RECEIVER && CONFIG_ENABLE_MQTT
 #define MSG_BUFFER_SIZE 128
-#define MAX_SMS_LENGTH 59
 
 static const char *MQTT_TAG = "MQTT";
 static esp_mqtt_client_handle_t mqtt_client;
@@ -173,7 +172,7 @@ void task_rx(void *pvParameters)
     {
         lora_status_t status;
 
-        char msg[MSG_BUFFER_SIZE];
+        char msg[DATA_SIZE];
 
         status = lora_receive(&packet);
 
