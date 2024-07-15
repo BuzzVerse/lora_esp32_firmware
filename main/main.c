@@ -45,10 +45,10 @@ static void initialize_sensors(void)
 
 #if CONFIG_LORA_RECEIVER
 static void task_rx(void *pvParameters);
+#define MSG_BUFFER_SIZE 128
 #endif
 
 #if CONFIG_LORA_RECEIVER && CONFIG_ENABLE_MQTT
-#define MSG_BUFFER_SIZE 128
 
 static const char *MQTT_TAG = "MQTT";
 static esp_mqtt_client_handle_t mqtt_client;
