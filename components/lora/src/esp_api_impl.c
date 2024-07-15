@@ -8,7 +8,7 @@
 
 #define SPI_WRITE_OPERATION 0x80
 #define SPI_DELAY_100MS 100
-#define MAX_BUFFER_LEN 256
+#define MAX_BUFFER_LEN 128
 
 static spi_device_handle_t __spi;
 static const char *LORA_API_TAG = "LORA_API";
@@ -87,7 +87,7 @@ api_status_t spi_write(uint8_t reg, uint8_t val)
     return API_OK;
 }
 
-api_status_t spi_write_buf(uint8_t reg, uint8_t *val, uint16_t len)
+api_status_t spi_write_buf(uint8_t reg, uint8_t *val, uint8_t len)
 {
     if (NULL == val)
     {
@@ -105,7 +105,7 @@ api_status_t spi_write_buf(uint8_t reg, uint8_t *val, uint16_t len)
 
     out[0] = SPI_WRITE_OPERATION | reg;
 
-    for (uint16_t i = 0; i < len; i++)
+    for (uint8_t i = 0; i < len; i++)
     {
         out[i + 1] = val[i];
     }
@@ -153,7 +153,7 @@ api_status_t spi_read(uint8_t reg, uint8_t *val)
     return API_OK;
 }
 
-api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
+api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint8_t len)
 {
     if (NULL == val)
     {
@@ -172,7 +172,7 @@ api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
 
     out[0] = reg;
 
-    for (uint16_t i = 0; i < len; i++)
+    for (uint8_t i = 0; i < len; i++)
     {
         out[i + 1] = 0xff;
     }
@@ -189,7 +189,7 @@ api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
         return API_FAILED_SPI_READ_BUF;
     }
 
-    for (uint16_t i = 0; i < len; i++)
+    for (uint8_t i = 0; i < len; i++)
     {
         val[i] = in[i + 1];
     }
