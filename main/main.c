@@ -48,6 +48,7 @@ static void task_rx(void *pvParameters);
 #endif
 
 #if CONFIG_LORA_RECEIVER && CONFIG_ENABLE_MQTT
+#define MSG_BUFFER_SIZE 128
 static const char *MQTT_TAG = "MQTT";
 static esp_mqtt_client_handle_t mqtt_client;
 
@@ -170,7 +171,7 @@ void task_rx(void *pvParameters)
     {
         lora_status_t status;
 
-        char msg[100];
+        char msg[MSG_BUFFER_SIZE];
 
         status = lora_receive(&packet);
 
@@ -196,13 +197,13 @@ void task_rx(void *pvParameters)
 
             if (LORA_OK == status)
             {
-                sprintf(msg, "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
-                        received_temp, received_press, received_hum);
+                snprintf(msg, sizeof(msg), "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
+                         received_temp, received_press, received_hum);
             }
             else
             {
                 ESP_LOGE(LORA_TAG, "Message CRC error!");
-                sprintf(msg, "{\"temperature\":-1, \"pressure\":-1, \"humidity\":-1}");
+                snprintf(msg, sizeof(msg), "{\"temperature\":-1, \"pressure\":-1, \"humidity\":-1}");
             }
         }
         else if (SMS == packet.dataType)
@@ -219,12 +220,12 @@ void task_rx(void *pvParameters)
 
             if (LORA_OK == status)
             {
-                sprintf(msg, "{\"data\":\"%s\"}", received_data);
+                snprintf(msg, sizeof(msg), "{\"data\":\"%s\"}", received_data);
             }
             else
             {
                 ESP_LOGE(LORA_TAG, "Message CRC error!");
-                sprintf(msg, "{\"data\":\"\"}");
+                snprintf(msg, sizeof(msg), "{\"data\":\"\"}");
             }
         }
 
