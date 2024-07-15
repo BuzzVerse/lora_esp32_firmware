@@ -147,7 +147,10 @@ esp_err_t bme280_init_driver(uint8_t dev_addr)
     bme280.bus_read = i2c_read;
 
     // Initialize the I2C bus
-    i2c_master_init();
+    if(SUCCESS != i2c_master_init()){
+        ESP_LOGE(TAG_BME280, "BME280 init failed.");
+        return ESP_FAIL;
+    }
 
     // Initialize the BME280 driver using BOSCH library
 

@@ -172,7 +172,7 @@ void task_rx(void *pvParameters)
     {
         lora_status_t status;
 
-        char msg[DATA_SIZE];
+        char msg[MSG_BUFFER_SIZE];
 
         status = lora_receive(&packet);
 
