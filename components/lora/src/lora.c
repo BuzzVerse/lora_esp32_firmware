@@ -220,8 +220,8 @@ lora_status_t lora_receive(packet_t *packet)
 
             print_buffer(buffer, sizeof(buffer));
 
-            ESP_LOGE(LORA_TAG, "RSSI: %d", rssi);
-            ESP_LOGE(LORA_TAG, "SNR: %d", snr);
+            ESP_LOGI(LORA_TAG, "RSSI: %d", rssi);
+            ESP_LOGI(LORA_TAG, "SNR: %d", snr);
 
             packet->version = buffer[PACKET_VERSION_IDX];
             packet->id = buffer[PACKET_ID_IDX];
