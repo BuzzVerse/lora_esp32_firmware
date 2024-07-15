@@ -37,6 +37,12 @@ size_t get_packet_size(DataType type);
 
 void lora_send_task(void *pvParameters)
 {
+    if (pvParameters != NULL)
+    {
+        ESP_LOGE(LORA_TAG, "pvParameters is NULL in lora_send_task.\n");
+        return;
+    }
+
     packet_t *packet = (packet_t *)pvParameters;
     uint8_t buffer[PACKET_SIZE] = {0};
     size_t packet_size = get_packet_size(packet->dataType) + META_DATA_SIZE;
@@ -57,6 +63,12 @@ void lora_send_task(void *pvParameters)
 
 void pack_packet(uint8_t *buffer, packet_t *packet)
 {
+    if (NULL == buffer || NULL == packet)
+    {
+        ESP_LOGE(LORA_TAG, "Buffer or packet is NULL.\n");
+        return;
+    }
+
     buffer[PACKET_VERSION_IDX] = packet->version;
     buffer[PACKET_ID_IDX] = packet->id;
     buffer[PACKET_MSG_ID_IDX] = packet->msgID;
@@ -67,6 +79,12 @@ void pack_packet(uint8_t *buffer, packet_t *packet)
 
 void print_buffer(uint8_t *buffer, size_t size)
 {
+    if (NULL == buffer)
+    {
+        ESP_LOGE(LORA_TAG, "Buffer is NULL.\n");
+        return;
+    }
+
     printf("BUFFER: \n");
     for (size_t i = 0; i < size; i++)
     {
@@ -115,7 +133,7 @@ lora_status_t lora_init(void)
 
     lora_set_frequency(LORA_FREQUENCY);
     lora_set_tx_power(LORA_POWER);
-    
+
     if (LORA_CRC)
     {
         lora_enable_crc();
@@ -129,9 +147,15 @@ lora_status_t lora_init(void)
 
 lora_status_t lora_send(packet_t *packet)
 {
+    if (NULL == packet)
+    {
+        ESP_LOGE(LORA_TAG, "Buffer or packet is NULL.\n");
+        return;
+    }
+
     sendTimer = xTimerCreate("SendTimer", pdMS_TO_TICKS(SEND_TIMEOUT), pdFALSE, (void *)0, sendPacketTimeoutHandler);
 
-    if (sendTimer == NULL)
+    if (NULL == sendTimer)
     {
         ESP_LOGE(LORA_TAG, "Failed to create timer.\n");
         return LORA_FAILED_SEND_PACKET;
@@ -167,6 +191,12 @@ lora_status_t lora_send(packet_t *packet)
 
 lora_status_t lora_receive(packet_t *packet)
 {
+    if (NULL == packet)
+    {
+        ESP_LOGE(LORA_TAG, "Packet is NULL.\n");
+        return;
+    }
+
     uint8_t buffer[PACKET_SIZE] = {0};
     uint8_t length = 0;
     uint8_t rssi = 0;

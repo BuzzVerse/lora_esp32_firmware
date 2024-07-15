@@ -24,7 +24,13 @@ static void task_tx(void *pvParameters);
 static void initialize_sensors(void)
 {
     esp_err_t bme_rc = ESP_OK;
-    bme_rc += bme280_init_driver(CONFIG_BME280_I2C_ADDRESS);
+    if (ESP_OK != bme280_init_driver(CONFIG_BME280_I2C_ADDRESS))
+    {
+        ESP_LOGE(TAG_MAIN, "BME280 initialization failed");
+        // not sure if this should restart, but also not sure what else to do here?
+        esp_restart();
+    }
+
     bme_rc += bme280_set_oversamp(BME280_OVERSAMP_16X, BME280_OVERSAMP_16X, BME280_OVERSAMP_16X);
     bme_rc += bme280_set_settings(STANDBY_10MS, BME280_FILTER_COEFF_16, BME280_NORMAL_MODE);
 
@@ -111,7 +117,7 @@ void task_tx(void *pvParameters)
         packet.msgCount = 1;                // Example message count (optional, set as needed)
         packet.dataType = CONFIG_DATA_TYPE; // Example data type
 
-        if (packet.dataType == BME280)
+        if (BME280 == packet.dataType)
         {
             // Convert raw sensor readings
             packet.data[0] = (int8_t)(temp_raw * 2);             // Scale temperature for higher precision and fit into int8_t
@@ -123,7 +129,7 @@ void task_tx(void *pvParameters)
             ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa (stored as %d)", press_raw / 100, packet.data[1]);
             ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %% (stored as %u)", hum_raw, packet.data[2]);
         }
-        else if (packet.dataType == SMS)
+        else if (SMS == packet.dataType)
         {
             // pack a String "BuzzVerse" into data array
             char data[] = "BuzzVerse";
@@ -140,11 +146,11 @@ void task_tx(void *pvParameters)
 
         if (LORA_OK != send_status)
         {
-            ESP_LOGE(TAG, "Packet send failed");
+            ESP_LOGE(TAG_MAIN, "Packet send failed");
         }
         else
         {
-            ESP_LOGI(TAG, "Packet sent successfully");
+            ESP_LOGI(TAG_MAIN, "Packet sent successfully");
         }
 
         // low_power_mode_set_sleep_time(15 * 60); // 15 minutes
@@ -176,7 +182,7 @@ void task_rx(void *pvParameters)
         ESP_LOGI(pcTaskGetName(NULL), "Message Count: %d", packet.msgCount);
         ESP_LOGI(pcTaskGetName(NULL), "Data Type: %d", packet.dataType);
 
-        if (packet.dataType == BME280)
+        if (BME280 == packet.dataType)
         {
             // Unpack and log the received data
             float received_temp = ((float)((int8_t)packet.data[0]) / 2.0);
@@ -188,7 +194,7 @@ void task_rx(void *pvParameters)
             ESP_LOGI(pcTaskGetName(NULL), "Received Pressure: %.2f hPa", received_press);
             ESP_LOGI(pcTaskGetName(NULL), "Received Humidity: %.2f %%", received_hum);
 
-            if (status == LORA_OK)
+            if (LORA_OK == status)
             {
                 sprintf(msg, "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
                         received_temp, received_press, received_hum);
@@ -199,7 +205,7 @@ void task_rx(void *pvParameters)
                 sprintf(msg, "{\"temperature\":-1, \"pressure\":-1, \"humidity\":-1}");
             }
         }
-        else if (packet.dataType == SMS)
+        else if (SMS == packet.dataType)
         {
             // Unpack and log the received data
             char received_data[10];
@@ -211,7 +217,7 @@ void task_rx(void *pvParameters)
             // Log the decoded values
             ESP_LOGI(pcTaskGetName(NULL), "Received Data: %s", received_data);
 
-            if (status == LORA_OK)
+            if (LORA_OK == status)
             {
                 sprintf(msg, "{\"data\":\"%s\"}", received_data);
             }

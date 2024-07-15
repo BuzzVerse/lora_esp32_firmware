@@ -146,27 +146,20 @@ esp_err_t bme280_init_driver(uint8_t dev_addr)
     bme280.bus_write = i2c_write;
     bme280.bus_read = i2c_read;
 
-    s32 com_rslt;
-
     // Initialize the I2C bus
     i2c_master_init();
 
     // Initialize the BME280 driver using BOSCH library
-    com_rslt = bme280_init(&bme280);
 
     // Check if the initialization was successful
-    if (com_rslt == SUCCESS)
-    {
-        ESP_LOGI(TAG_BME280, "BME280 init success");
-        return ESP_OK;
-    }
-    else
+    if (SUCCESS != bme280_init(&bme280))
     {
         ESP_LOGE(TAG_BME280, "BME280 init failed. code: %d", com_rslt);
         return ESP_FAIL;
     }
 
-    return com_rslt;
+    ESP_LOGI(TAG_BME280, "BME280 init success");
+    return ESP_OK;
 }
 
 esp_err_t bme280_set_oversamp(bme280_oversampling_t oversamp_pressure, bme280_oversampling_t oversamp_temperature, bme280_oversampling_t oversamp_humidity)

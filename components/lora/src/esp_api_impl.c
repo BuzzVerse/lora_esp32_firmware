@@ -88,7 +88,7 @@ api_status_t spi_write(uint8_t reg, uint8_t val)
 
 api_status_t spi_write_buf(uint8_t reg, uint8_t *val, uint16_t len)
 {
-    if (val == NULL)
+    if (NULL == val)
     {
         ESP_LOGE(LORA_API_TAG, "Cannot assign value to NULL pointer");
         return API_NULL_POINTER_ERROR;
@@ -124,7 +124,7 @@ api_status_t spi_write_buf(uint8_t reg, uint8_t *val, uint16_t len)
 
 api_status_t spi_read(uint8_t reg, uint8_t *val)
 {
-    if (val == NULL)
+    if (NULL == val)
     {
         ESP_LOGE(LORA_API_TAG, "Cannot assign value to NULL pointer");
         return API_NULL_POINTER_ERROR;
@@ -151,7 +151,7 @@ api_status_t spi_read(uint8_t reg, uint8_t *val)
 
 api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
 {
-    if (val == NULL)
+    if (NULL == val)
     {
         ESP_LOGE(LORA_API_TAG, "Cannot assign value to NULL pointer");
         return API_NULL_POINTER_ERROR;
@@ -212,6 +212,8 @@ api_status_t lora_reset(void)
         return API_FAILED_SPI_SET_LEVEL;
     }
     ESP_LOGI(LORA_API_TAG, "LoRa module reset!");
+
+    return API_OK;
 }
 
 void lora_delay(uint32_t ms)
