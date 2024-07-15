@@ -37,7 +37,7 @@ size_t get_packet_size(DataType type);
 
 void lora_send_task(void *pvParameters)
 {
-    if (pvParameters != NULL)
+    if (pvParameters == NULL)
     {
         ESP_LOGE(LORA_TAG, "pvParameters is NULL in lora_send_task.\n");
         return;

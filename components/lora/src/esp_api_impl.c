@@ -8,6 +8,7 @@
 
 #define SPI_WRITE_OPERATION 0x80
 #define SPI_DELAY_100MS 100
+#define MAX_BUFFER_LEN 256
 
 static spi_device_handle_t __spi;
 static const char *LORA_API_TAG = "LORA_API";
@@ -94,11 +95,17 @@ api_status_t spi_write_buf(uint8_t reg, uint8_t *val, uint16_t len)
         return API_NULL_POINTER_ERROR;
     }
 
-    uint8_t *out;
+    if (len > MAX_BUFFER_LEN)
+    {
+        ESP_LOGE(LORA_API_TAG, "Buffer length exceeds maximum allowed size");
+        return API_BUFFER_TOO_LARGE;
+    }
 
-    out = (uint8_t *)malloc(len + 1);
+    uint8_t out[MAX_BUFFER_LEN + 1];
+
     out[0] = SPI_WRITE_OPERATION | reg;
-    for (uint8_t i = 0; i < len; i++)
+
+    for (uint16_t i = 0; i < len; i++)
     {
         out[i + 1] = val[i];
     }
@@ -112,11 +119,8 @@ api_status_t spi_write_buf(uint8_t reg, uint8_t *val, uint16_t len)
     if (ESP_OK != spi_device_transmit(__spi, &transaction))
     {
         ESP_LOGE(LORA_API_TAG, "SPI buffer write failed: reg=0x%02X, len=%d", reg, len);
-        free(out);
         return API_FAILED_SPI_WRITE_BUF;
     }
-
-    free(out);
 
     ESP_LOGD(LORA_API_TAG, "SPI buffer write successful: reg=0x%02X, len=%d", reg, len);
     return API_OK;
@@ -157,14 +161,18 @@ api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
         return API_NULL_POINTER_ERROR;
     }
 
-    uint8_t *out;
-    uint8_t *in;
+    if (len > MAX_BUFFER_LEN)
+    {
+        ESP_LOGE(LORA_API_TAG, "Buffer length exceeds maximum allowed size");
+        return API_BUFFER_TOO_LARGE;
+    }
 
-    out = (uint8_t *)malloc(len + 1);
-    in = (uint8_t *)malloc(len + 1);
+    uint8_t out[MAX_BUFFER_LEN + 1];
+    uint8_t in[MAX_BUFFER_LEN + 1];
+
     out[0] = reg;
 
-    for (uint8_t i = 0; i < len; i++)
+    for (uint16_t i = 0; i < len; i++)
     {
         out[i + 1] = 0xff;
     }
@@ -178,18 +186,13 @@ api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint16_t len)
     if (ESP_OK != spi_device_transmit(__spi, &transaction))
     {
         ESP_LOGE(LORA_API_TAG, "SPI buffer read failed: reg=0x%02X, len=%d", reg, len);
-        free(out);
-        free(in);
         return API_FAILED_SPI_READ_BUF;
     }
 
-    for (uint8_t i = 0; i < len; i++)
+    for (uint16_t i = 0; i < len; i++)
     {
         val[i] = in[i + 1];
     }
-
-    free(out);
-    free(in);
 
     ESP_LOGD(LORA_API_TAG, "SPI buffer read successful: reg=0x%02X, len=%d", reg, len);
     return API_OK;
