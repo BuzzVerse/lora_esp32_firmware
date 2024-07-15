@@ -49,6 +49,8 @@ static void task_rx(void *pvParameters);
 
 #if CONFIG_LORA_RECEIVER && CONFIG_ENABLE_MQTT
 #define MSG_BUFFER_SIZE 128
+#define MAX_SMS_LENGTH 59
+
 static const char *MQTT_TAG = "MQTT";
 static esp_mqtt_client_handle_t mqtt_client;
 
@@ -209,7 +211,7 @@ void task_rx(void *pvParameters)
         else if (SMS == packet.dataType)
         {
             // Unpack and log the received data
-            char received_data[10];
+            char received_data[MAX_SMS_LENGTH];
             for (int i = 0; i < sizeof(received_data); i++)
             {
                 received_data[i] = packet.data[i];
