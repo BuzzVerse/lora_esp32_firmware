@@ -109,16 +109,4 @@ esp_err_t bme280_read_temperature(double *temperature);
  */
 esp_err_t bme280_read_humidity(double *humidity);
 
-/**
- * @brief Function to read all sensor data
- *
- * @param temperature Pointer to the variable where the temperature will be stored
- *
- * @param pressure Pointer to the variable where the pressure will be stored
- *
- * @param humidity Pointer to the variable where the humidity will be stored
- *
- * @returns ESP_OK if successful, ESP_FAIL if unsuccessful
- */
-esp_err_t i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t cnt);
 #endif // BME280_H

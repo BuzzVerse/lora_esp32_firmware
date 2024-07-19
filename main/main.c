@@ -15,7 +15,8 @@
 #include "mqtt_client.h"
 #include "protocol_examples_common.h"
 #include "low_power_mode.h"
-#include "gauge.h"
+#include "bq27441.h"
+#include "i2c.h"
 
 #define TAG_MAIN "Main"
 
@@ -24,6 +25,46 @@ static void task_tx(void *pvParameters);
 
 static void initialize_sensors(void)
 {
+    esp_err_t err = i2c_init();
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG_MAIN, "I2C init failed");
+        return;
+    }
+
+    uint16_t capacity;
+    err = bq27441_read_design_capacity(&capacity);
+    if (err == ESP_OK)
+    {
+        ESP_LOGI(TAG_MAIN, "Design Capacity: %d mAh", capacity);
+    }
+    else
+    {
+        ESP_LOGE(TAG_MAIN, "Failed to read Design Capacity");
+    }
+
+    uint16_t soc;
+    err = bq27441_read_soc(&soc);
+    if (err == ESP_OK)
+    {
+        ESP_LOGI(TAG_MAIN, "State of Charge: %d %%", soc);
+    }
+    else
+    {
+        ESP_LOGE(TAG_MAIN, "Failed to read State of Charge");
+    }
+
+    uint16_t voltage;
+    err = bq27441_read_voltage(&voltage);
+    if (err == ESP_OK)
+    {
+        ESP_LOGI(TAG_MAIN, "Voltage: %d mV", voltage);
+    }
+    else
+    {
+        ESP_LOGE(TAG_MAIN, "Failed to read Voltage");
+    }
+
     esp_err_t bme_rc = ESP_OK;
     if (ESP_OK != bme280_init_driver(CONFIG_BME280_I2C_ADDRESS))
     {
@@ -105,13 +146,9 @@ void task_tx(void *pvParameters)
     vTaskDelay(500 / portTICK_PERIOD_MS);
 
     packet_t packet = {0};
-    uint16_t voltage = 0;
-
 
     while (1)
-    {   
-
-
+    {
 
         double temp_raw, press_raw, hum_raw;
         bme280_read_temperature(&temp_raw);
@@ -124,12 +161,6 @@ void task_tx(void *pvParameters)
         packet.msgID = 1;                   // Example message ID
         packet.msgCount = 1;                // Example message count (optional, set as needed)
         packet.dataType = CONFIG_DATA_TYPE; // Example data type
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-        get_voltage(&voltage);
-        ESP_LOGI("Gauge: ", "Voltage: %d", voltage);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-
-        
 
         if (BME280 == packet.dataType)
         {
