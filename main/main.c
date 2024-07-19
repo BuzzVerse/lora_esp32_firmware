@@ -17,31 +17,40 @@
 #include "low_power_mode.h"
 #include "gauge.h"
 
-#define TAG "Main"
+#define TAG_MAIN "Main"
 
 #if CONFIG_LORA_TRANSMITTER
 static void task_tx(void *pvParameters);
 
 static void initialize_sensors(void)
 {
-    esp_err_t bme_rc = ESP_OK;       
-    bme_rc += bme280_init_driver(CONFIG_BME280_I2C_ADDRESS);
+    esp_err_t bme_rc = ESP_OK;
+    if (ESP_OK != bme280_init_driver(CONFIG_BME280_I2C_ADDRESS))
+    {
+        ESP_LOGE(TAG_MAIN, "BME280 initialization failed");
+        // not sure if this should restart, but also not sure what else to do here?
+        esp_restart();
+    }
+
     bme_rc += bme280_set_oversamp(BME280_OVERSAMP_16X, BME280_OVERSAMP_16X, BME280_OVERSAMP_16X);
     bme_rc += bme280_set_settings(STANDBY_10MS, BME280_FILTER_COEFF_16, BME280_NORMAL_MODE);
 
     if (ESP_OK != bme_rc)
     {
         ESP_LOGE("BME", "BME280 settings failed");
-        while (1)
-        {
-            vTaskDelay(1);
-        }
+        // not sure if this should restart, but also not sure what else to do here?
+        esp_restart();
     }
 }
 #endif
 
 #if CONFIG_LORA_RECEIVER
 static void task_rx(void *pvParameters);
+#define MSG_BUFFER_SIZE 128
+#endif
+
+#if CONFIG_LORA_RECEIVER && CONFIG_ENABLE_MQTT
+
 static const char *MQTT_TAG = "MQTT";
 static esp_mqtt_client_handle_t mqtt_client;
 
@@ -59,6 +68,7 @@ static void initialize_mqtt(void)
         .credentials.username = "admin",
         .credentials.authentication.password = "",
     };
+
     mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
     esp_mqtt_client_start(mqtt_client);
 }
@@ -70,7 +80,8 @@ void app_main(void)
     if (LORA_OK != lora_init())
     {
         ESP_LOGE("MAIN", "LoRa initialization failed");
-        // Maybe add a retry mechanism here? Either for the lora only, and retry the init function, or for the whole device, and reboot it.
+        // not sure if this should restart, but also not sure what else to do here?
+        esp_restart();
     }
 
 #if CONFIG_LORA_TRANSMITTER
@@ -78,8 +89,11 @@ void app_main(void)
     xTaskCreate(&task_tx, "TX", 1024 * 3, NULL, 5, NULL);
 #endif
 
-#if CONFIG_LORA_RECEIVER
+#if CONFIG_LORA_RECEIVER && CONFIG_ENABLE_MQTT
     initialize_mqtt();
+#endif
+
+#if CONFIG_LORA_RECEIVER
     xTaskCreate(&task_rx, "RX", 1024 * 3, NULL, 5, NULL);
 #endif
 }
@@ -117,33 +131,44 @@ void task_tx(void *pvParameters)
 
         
 
-        // Convert raw sensor readings
-        packet.data[0] = (int8_t)(temp_raw * 2);             // Scale temperature for higher precision and fit into int8_t
-        packet.data[1] = (int8_t)((press_raw / 100) - 1000); // Convert Pa to hPa, subtract 1000
-        packet.data[2] = (uint8_t)hum_raw;                   // Fit humidity into uint8_t
-        packet.data[3] = (voltage >> 8) & 0xFF;              // High byte
-        packet.data[4] = voltage & 0xFF;                     // Low byte
+        if (BME280 == packet.dataType)
+        {
+            // Convert raw sensor readings
+            packet.data[0] = (int8_t)(temp_raw * 2);             // Scale temperature for higher precision and fit into int8_t
+            packet.data[1] = (int8_t)((press_raw / 100) - 1000); // Convert Pa to hPa, subtract 1000
+            packet.data[2] = (uint8_t)hum_raw;                   // Fit humidity into uint8_t
 
+            // Log the packet data before sending
+            ESP_LOGI(pcTaskGetName(NULL), "Temperature: %.2f C (scaled to %d)", temp_raw, packet.data[0]);
+            ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa (stored as %d)", press_raw / 100, packet.data[1]);
+            ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %% (stored as %u)", hum_raw, packet.data[2]);
+        }
+        else if (SMS == packet.dataType)
+        {
+            // pack a String "BuzzVerse" into data array
+            char data[] = "BuzzVerse";
+            for (int i = 0; i < sizeof(data); i++)
+            {
+                packet.data[i] = data[i];
+            }
 
-        // Log the packet data before sending
-        ESP_LOGI(pcTaskGetName(NULL), "Temperature: %.2f C (scaled to %d)", temp_raw, packet.data[0]);
-        ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa (stored as %d)", press_raw / 100, packet.data[1]);
-        ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %% (stored as %u)", hum_raw, packet.data[2]);
-        ESP_LOGI(pcTaskGetName(NULL), "Voltage: %d", voltage);
+            // Log the packet data before sending
+            ESP_LOGI(pcTaskGetName(NULL), "Data: %s", packet.data);
+        } // Add more data types here
 
         lora_status_t send_status = lora_send(&packet);
 
         if (LORA_OK != send_status)
         {
-            ESP_LOGE(TAG, "Packet send failed");
+            ESP_LOGE(TAG_MAIN, "Packet send failed");
         }
         else
         {
-            ESP_LOGI(TAG, "Packet sent successfully");
+            ESP_LOGI(TAG_MAIN, "Packet sent successfully");
         }
 
-        low_power_mode_set_sleep_time(15 * 60); // 15 minutes
-        low_power_mode_enter_deep_sleep();
+        // low_power_mode_set_sleep_time(15 * 60); // 15 minutes
+        // low_power_mode_enter_deep_sleep();
     }
 }
 
@@ -160,24 +185,10 @@ void task_rx(void *pvParameters)
     {
 
         lora_status_t status;
+
+        char msg[MSG_BUFFER_SIZE];
+
         status = lora_receive(&packet);
-
-        voltage = (uint8_t)packet.data[3]; // High byte
-        voltage = voltage << 8;
-        voltage |= (uint8_t)packet.data[4];
-
-        // Unpack and log the received data
-        float received_temp = ((float)((int8_t)packet.data[0]) / 2.0);
-        float received_press = (float)(1000 + (int8_t)packet.data[1]);
-        float received_hum = (float)packet.data[2];
-
-        // Log the decoded values
-        ESP_LOGI(pcTaskGetName(NULL), "Received Temp: %.2f C", received_temp);
-        ESP_LOGI(pcTaskGetName(NULL), "Received Pressure: %.2f hPa", received_press);
-        ESP_LOGI(pcTaskGetName(NULL), "Received Humidity: %.2f %%", received_hum);
-        ESP_LOGI(pcTaskGetName(NULL), "Received Voltage: %d", voltage);
-
-        printf("\n");
 
         // Log the packet details
         ESP_LOGI(pcTaskGetName(NULL), "Class: %d", packet.id >> 4);
@@ -187,18 +198,53 @@ void task_rx(void *pvParameters)
         ESP_LOGI(pcTaskGetName(NULL), "Message Count: %d", packet.msgCount);
         ESP_LOGI(pcTaskGetName(NULL), "Data Type: %d", packet.dataType);
 
-        char msg[100];
+        if (BME280 == packet.dataType)
+        {
+            // Unpack and log the received data
+            float received_temp = ((float)((int8_t)packet.data[0]) / 2.0);
+            float received_press = (float)(1000 + (int8_t)packet.data[1]);
+            float received_hum = (float)packet.data[2];
 
-        if (status == LORA_OK)
-        {
-            sprintf(msg, "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
-                    received_temp, received_press, received_hum);
+            // Log the decoded values
+            ESP_LOGI(pcTaskGetName(NULL), "Received Temp: %.2f C", received_temp);
+            ESP_LOGI(pcTaskGetName(NULL), "Received Pressure: %.2f hPa", received_press);
+            ESP_LOGI(pcTaskGetName(NULL), "Received Humidity: %.2f %%", received_hum);
+
+            if (LORA_OK == status)
+            {
+                snprintf(msg, sizeof(msg), "{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}",
+                         received_temp, received_press, received_hum);
+            }
+            else
+            {
+                ESP_LOGE(LORA_TAG, "Message CRC error!");
+                snprintf(msg, sizeof(msg), "{\"temperature\":-1, \"pressure\":-1, \"humidity\":-1}");
+            }
         }
-        else
+        else if (SMS == packet.dataType)
         {
-            ESP_LOGE(MQTT_TAG, "Message CRC error!");
-            sprintf(msg, "{\"temperature\":-1, \"pressure\":-1, \"humidity\":-1}");
+            // Unpack and log the received data
+            char received_data[DATA_SIZE];
+            for (int i = 0; i < sizeof(received_data); i++)
+            {
+                received_data[i] = packet.data[i];
+            }
+
+            // Log the decoded values
+            ESP_LOGI(pcTaskGetName(NULL), "Received Data: %s", received_data);
+
+            if (LORA_OK == status)
+            {
+                snprintf(msg, sizeof(msg), "{\"data\":\"%s\"}", received_data);
+            }
+            else
+            {
+                ESP_LOGE(LORA_TAG, "Message CRC error!");
+                snprintf(msg, sizeof(msg), "{\"data\":\"\"}");
+            }
         }
+
+#if CONFIG_ENABLE_MQTT
 
         int msg_id = esp_mqtt_client_publish(mqtt_client, "tele/lora/SENSOR_SPANISH", msg, 0, 1, 0);
         if (msg_id < 0)
@@ -209,6 +255,8 @@ void task_rx(void *pvParameters)
         {
             ESP_LOGI(MQTT_TAG, "Published message with msg_id: %d", msg_id);
         }
+
+#endif
     }
 }
 #endif

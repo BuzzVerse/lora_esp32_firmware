@@ -103,6 +103,13 @@ menu "LoRa Configuration"
             help
                 Set the spreading factor for the LoRa module.
                 Spreading factors can be 6 to 12.
+        
+        config TX_POWER
+            int "LoRa transmit power"
+            range 1 17
+            default 17
+            help
+                Set the transmitting power for the lora module. Values are from 0 to 17.
 
         config LORA_CRC
             bool "Enable CRC"
