@@ -7,7 +7,7 @@
 
 #define TAG_BME280 "BME280"
 
-struct bme280_t bme280;
+static struct bme280_t bme280;
 
 void delay_ms(uint32_t ticks)
 {

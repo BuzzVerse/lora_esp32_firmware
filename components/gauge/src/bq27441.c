@@ -30,8 +30,7 @@ static esp_err_t bq27441_read_flags(uint16_t *flags);
 
 esp_err_t bq27441_init(void)
 {
-    esp_err_t err = i2c_init();
-    if (err != ESP_OK) return err;
+    esp_err_t err = ESP_OK;
 
     // Ensure the device is unsealed
     err = bq27441_unseal();
