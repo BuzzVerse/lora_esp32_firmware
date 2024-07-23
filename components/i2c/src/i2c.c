@@ -81,6 +81,11 @@ esp_err_t i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t dat
     esp_err_t err = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 20 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
 
+    void delay_ms(uint32_t ticks)
+    {
+        vTaskDelay(ticks / portTICK_PERIOD_MS);
+    }
+
 #if CONFIG_LOG_DEFAULT_LEVEL_DEBUG || CONFIG_LOG_DEFAULT_LEVEL_VERBOSE
     for (int i = 0; i < data_len; i++)
     {

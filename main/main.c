@@ -17,6 +17,7 @@
 #include "low_power_mode.h"
 #include "i2c.h"
 #include "bq27441.h"
+#include "bmm150.h"
 
 #define TAG_MAIN "Main"
 
@@ -28,6 +29,15 @@ static void initialize_sensors(void)
     esp_err_t bme_rc = ESP_OK;
  
     i2c_init();
+
+    esp_err_t bm_rc = ESP_OK;
+    bm_rc = bmm150_init_driver(BMM150_DEFAULT_I2C_ADDRESS);
+    if(ESP_OK != bm_rc)
+    {
+        ESP_LOGE("BMM280", "Failed to initialize BMM150");
+        return;
+    }
+
 
     if (ESP_OK != bme280_init_driver(CONFIG_BME280_I2C_ADDRESS))
     {
@@ -42,6 +52,7 @@ static void initialize_sensors(void)
         ESP_LOGE(TAG_MAIN, "Failed to initialize BQ27441");
         return;
     }
+
 
     uint16_t capacity;
         bq_rc = bq27441_read_design_capacity(&capacity);
