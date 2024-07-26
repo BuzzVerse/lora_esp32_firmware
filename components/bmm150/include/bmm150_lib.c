@@ -201,7 +201,7 @@ static int8_t set_z_rep(const struct bmm150_settings *settings, struct bmm150_de
  * @retval >0 -> Warning
  * @retval <0 -> Fail
  */
-static int8_t set_odr(const struct bmm150_settings *settings, struct bmm150_dev *dev);
+int8_t set_odr(const struct bmm150_settings *settings, struct bmm150_dev *dev);
 
 /*!
  * @brief This internal API sets the preset mode ODR and repetition settings.
@@ -220,7 +220,7 @@ static int8_t set_odr(const struct bmm150_settings *settings, struct bmm150_dev 
  * @retval >0 -> Warning
  * @retval <0 -> Fail
  */
-static int8_t set_odr_xyz_rep(const struct bmm150_settings *settings, struct bmm150_dev *dev);
+int8_t set_odr_xyz_rep(const struct bmm150_settings *settings, struct bmm150_dev *dev);
 
 /*!
  * @brief This internal API is used to enable or disable the magnetic
@@ -250,7 +250,7 @@ static int8_t set_odr_xyz_rep(const struct bmm150_settings *settings, struct bmm
  * @retval >0 -> Warning
  * @retval <0 -> Fail
  */
-static int8_t set_control_measurement_xyz(const struct bmm150_settings *settings, struct bmm150_dev *dev);
+int8_t set_control_measurement_xyz(const struct bmm150_settings *settings, struct bmm150_dev *dev);
 
 /*!
  * @brief This internal API is used to identify the settings which the user
@@ -1309,7 +1309,7 @@ static int8_t set_xy_rep(const struct bmm150_settings *settings, struct bmm150_d
 /*!
  * @brief This internal API sets the z repetition value in the 0x52 register.
  */
-static int8_t set_z_rep(const struct bmm150_settings *settings, struct bmm150_dev *dev)
+int8_t set_z_rep(const struct bmm150_settings *settings, struct bmm150_dev *dev)
 {
     int8_t rslt;
     uint8_t rep_z;
@@ -1324,7 +1324,7 @@ static int8_t set_z_rep(const struct bmm150_settings *settings, struct bmm150_de
 /*!
  * @brief This internal API is used to set the output data rate of the sensor.
  */
-static int8_t set_odr(const struct bmm150_settings *settings, struct bmm150_dev *dev)
+int8_t set_odr(const struct bmm150_settings *settings, struct bmm150_dev *dev)
 {
     int8_t rslt;
     uint8_t reg_data;
@@ -1345,7 +1345,7 @@ static int8_t set_odr(const struct bmm150_settings *settings, struct bmm150_dev 
 /*!
  * @brief This internal API sets the preset mode ODR and repetition settings.
  */
-static int8_t set_odr_xyz_rep(const struct bmm150_settings *settings, struct bmm150_dev *dev)
+int8_t set_odr_xyz_rep(const struct bmm150_settings *settings, struct bmm150_dev *dev)
 {
     int8_t rslt;
 
@@ -1371,7 +1371,7 @@ static int8_t set_odr_xyz_rep(const struct bmm150_settings *settings, struct bmm
  * @brief This internal API is used to enable or disable the magnetic
  * measurement of x,y,z axes based on the value of xyz_axes_control.
  */
-static int8_t set_control_measurement_xyz(const struct bmm150_settings *settings, struct bmm150_dev *dev)
+int8_t set_control_measurement_xyz(const struct bmm150_settings *settings, struct bmm150_dev *dev)
 {
     int8_t rslt;
     uint8_t reg_data;

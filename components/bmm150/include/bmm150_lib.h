@@ -472,6 +472,11 @@ int8_t bmm150_get_interrupt_status(struct bmm150_dev *dev);
  */
 int8_t bmm150_aux_mag_data(uint8_t *aux_data, struct bmm150_mag_data *mag_data, const struct bmm150_dev *dev);
 
+int8_t set_control_measurement_xyz(const struct bmm150_settings *settings, struct bmm150_dev *dev);
+int8_t set_odr_xyz_rep(const struct bmm150_settings *settings, struct bmm150_dev *dev);
+int8_t set_odr(const struct bmm150_settings *settings, struct bmm150_dev *dev);
+
+
 #ifdef __cplusplus
 }
 #endif /* End of CPP guard */

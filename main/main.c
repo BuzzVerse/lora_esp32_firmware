@@ -30,9 +30,10 @@ static void initialize_sensors(void)
  
     i2c_init();
 
-    esp_err_t bm_rc = ESP_OK;
-    bm_rc = bmm150_init_driver(BMM150_DEFAULT_I2C_ADDRESS);
-    if(ESP_OK != bm_rc)
+    esp_err_t bmm_rc = ESP_OK;
+    bmm_rc += setup_bmm150_normal_mode(&dev);
+    bmm_rc = bmm150_init_driver(BMM150_DEFAULT_I2C_ADDRESS);
+    if(ESP_OK != bmm_rc)
     {
         ESP_LOGE("BMM280", "Failed to initialize BMM150");
         return;
@@ -201,6 +202,33 @@ void task_tx(void *pvParameters)
             ESP_LOGI(pcTaskGetName(NULL), "Data: %s", packet.data);
         } // Add more data types here
 
+        else if (BMM150 == packet.dataType)
+        {
+            write_op_mode(BMM150_POWERMODE_NORMAL, &dev);
+            set_interrupt_settings(BMM150_SEL_LOW_THRESHOLD_SETTING, &settings, &dev);
+            
+            // Read the raw magnetometer data
+            int16_t x_raw, y_raw, z_raw;
+            bmm150_mag_data data;
+            bmm150_read_mag_data(&data, &dev);
+            
+            x_raw = data.x;
+            y_raw = data.y;
+            z_raw = data.z;
+
+            // Pack the raw magnetometer data into the packet
+            packet.data[0] = x_raw & 0xFF;
+            packet.data[1] = (x_raw >> 8) & 0xFF;
+            packet.data[2] = y_raw & 0xFF;
+            packet.data[3] = (y_raw >> 8) & 0xFF;
+            packet.data[4] = z_raw & 0xFF;
+            packet.data[5] = (z_raw >> 8) & 0xFF;
+
+            // Log the packet data before sending
+            ESP_LOGI(pcTaskGetName(NULL), "Magnetometer X: %d", x_raw);
+            ESP_LOGI(pcTaskGetName(NULL), "Magnetometer Y: %d", y_raw);
+            ESP_LOGI(pcTaskGetName(NULL), "Magnetometer Z: %d", z_raw);
+        }
         lora_status_t send_status = lora_send(&packet);
 
         if (LORA_OK != send_status)
@@ -287,6 +315,7 @@ void task_rx(void *pvParameters)
             }
         }
 
+        
 #if CONFIG_ENABLE_MQTT
 
         int msg_id = esp_mqtt_client_publish(mqtt_client, "tele/lora/SENSOR_SPANISH", msg, 0, 1, 0);

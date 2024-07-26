@@ -250,6 +250,8 @@ size_t get_packet_size(DataType type)
         return 16; // 8B longitude, 8B latitude
     case STATUS:
         return 1;  // 1B battery percentage
+    case BMM150:
+        return 24; // 8B x-axis, 8B y-axis 8B z-axis
     case SMS:
         return 59; // Max 59B String
     default:
