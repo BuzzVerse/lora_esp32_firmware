@@ -7,6 +7,7 @@
 #include "freertos/task.h"
 #include "bme280.h"
 #include "lora.h"
+#include "bluetooth.h"
 #include "esp_wifi.h"
 #include "esp_system.h"
 #include "nvs_flash.h"
@@ -85,7 +86,12 @@ void app_main(void)
 
 #if CONFIG_LORA_TRANSMITTER
     initialize_sensors();
-    xTaskCreate(&task_tx, "TX", 1024 * 3, NULL, 5, NULL);
+    //xTaskCreate(&task_tx, "TX", 1024 * 3, NULL, 5, NULL);
+#endif
+
+#if CONFIG_ENABLE_BLUETOOTH
+    ESP_ERROR_CHECK(nvs_flash_init());
+    init_ble();
 #endif
 
 #if CONFIG_LORA_RECEIVER && CONFIG_ENABLE_MQTT

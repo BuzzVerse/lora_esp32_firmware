@@ -1,0 +1,21 @@
+menu "Bluetooth Configuration"
+
+    config ENABLE_BLUETOOTH
+            bool "Enable Bluetooth"
+            default n
+            help
+                Enable or disable sending received packet over Bluetooth.
+    
+    config BT_DEVICE_NAME
+        string "Bluetooth Device Name"
+        default "BuzzVerse 🐝"
+        help
+            Name of the Bluetooth device.
+    
+    config BT_DEVICE_UUID
+        string "Bluetooth Device UUID16"
+        default "FACE"
+        help
+            Set the Bluetooth device 16-bit UUID.
+
+endmenu
