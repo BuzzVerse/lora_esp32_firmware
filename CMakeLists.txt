@@ -7,6 +7,8 @@ cmake_minimum_required(VERSION 3.5)
 set(EXTRA_COMPONENT_DIRS 
     "./components/low_power_mode"
     "./components/bme280"
+    "./components/lora"
+    $ENV{IDF_PATH}/examples/common_components/protocol_examples_common
     )
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)

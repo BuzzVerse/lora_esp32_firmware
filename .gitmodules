@@ -1,0 +1,6 @@
+[submodule "driver"]
+	path = components/lora/include/driver
+	url = git@github.com:BuzzVerse/lora_driver.git
+[submodule "protocols"]
+	path = components/lora/include/protocols
+	url = git@github.com:BuzzVerse/protocols.git

@@ -4,9 +4,9 @@
 
 const static char *TAG = "low_power_mode_manager";
 
-void low_power_mode_set_sleep_time(int sleep_time_sec)
+void low_power_mode_set_sleep_time(uint32_t sleep_time_sec)
 {
-    ESP_LOGI(TAG, "Enabling timer wakeup, %ds\n", sleep_time_sec);
+    ESP_LOGI(TAG, "Enabling timer wakeup, %ld\n", sleep_time_sec);
     ESP_ERROR_CHECK(esp_sleep_enable_timer_wakeup(sleep_time_sec * 1000000));
 }
 

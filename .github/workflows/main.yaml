@@ -11,6 +11,7 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v2
       with:
+        token: ${{ secrets.BV_GH_ACTIONS_PAT }}
         submodules: 'recursive'
     - name: esp-idf build
       uses: espressif/esp-idf-ci-action@v1

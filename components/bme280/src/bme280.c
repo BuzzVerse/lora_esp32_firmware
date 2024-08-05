@@ -31,6 +31,9 @@ esp_err_t i2c_master_init(void)
         .master.clk_speed = 1000000             // Clock speed (1 MHz)
     };
 
+    gpio_set_direction(CONFIG_I2C_MASTER_ENABLED, GPIO_MODE_OUTPUT);
+    gpio_set_level(CONFIG_I2C_MASTER_ENABLED, 1);
+
     // Configure I2C parameters
     esp_rc = i2c_param_config(I2C_NUM_0, &i2c_config);
 
@@ -143,27 +146,23 @@ esp_err_t bme280_init_driver(uint8_t dev_addr)
     bme280.bus_write = i2c_write;
     bme280.bus_read = i2c_read;
 
-    s32 com_rslt;
-
     // Initialize the I2C bus
-    i2c_master_init();
-
-    // Initialize the BME280 driver using BOSCH library
-    com_rslt = bme280_init(&bme280);
-
-    // Check if the initialization was successful
-    if (com_rslt == SUCCESS)
-    {
-        ESP_LOGI(TAG_BME280, "BME280 init success");
-        return ESP_OK;
-    }
-    else
-    {
-        ESP_LOGE(TAG_BME280, "BME280 init failed. code: %d", com_rslt);
+    if(SUCCESS != i2c_master_init()){
+        ESP_LOGE(TAG_BME280, "BME280 init failed.");
         return ESP_FAIL;
     }
 
-    return com_rslt;
+    // Initialize the BME280 driver using BOSCH library
+
+    // Check if the initialization was successful
+    if (SUCCESS != bme280_init(&bme280))
+    {
+        ESP_LOGE(TAG_BME280, "BME280 init failed.");
+        return ESP_FAIL;
+    }
+
+    ESP_LOGI(TAG_BME280, "BME280 init success");
+    return ESP_OK;
 }
 
 esp_err_t bme280_set_oversamp(bme280_oversampling_t oversamp_pressure, bme280_oversampling_t oversamp_temperature, bme280_oversampling_t oversamp_humidity)

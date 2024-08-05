@@ -1,0 +1,38 @@
+menu "App Configuration"
+
+    config PACKET_VERSION
+        int "Packet Version"
+        range 0 15
+        default 0
+        help
+            Version of the packet.
+
+    config CLASS_ID
+        int "ID of class"
+        range 0 15
+        default 0
+        help
+            ID of the device's class.
+
+    config DEVICE_ID
+        int "Device ID"
+        range 0 15
+        default 0
+        help
+            ID of the device.
+
+    config DATA_TYPE
+        int "Data Type"
+        range 0 255
+        default 0
+        help
+            Type of data to be sent.
+
+    config ENABLE_MQTT
+            bool "Enable MQTT"
+            depends on LORA_RECEIVER
+            default y
+            help
+                Enable or disable sending received packet over MQTT.
+
+endmenu

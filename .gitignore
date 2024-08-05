@@ -28,7 +28,7 @@ _deps
 ### ESP-IDF ###
 build/
 sdkconfig
-sdkconfig.old
+sdkconfig.*
 
 # Local History for Visual Studio Code
 .history/
@@ -44,3 +44,5 @@ docs/html/**
 .history
 .ionide
 
+logs
+snyk-macos

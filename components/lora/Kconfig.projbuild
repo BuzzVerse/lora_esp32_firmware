@@ -1,0 +1,120 @@
+menu "LoRa Configuration"
+
+    choice
+        prompt "Class that LoRa works in."
+        default LORA_RECEIVER
+        help
+            Select the class in which LoRa operates.
+
+        config LORA_RECEIVER
+            bool "Receiver"
+            help
+                Receiver puts the device into receiving mode.
+
+        config LORA_TRANSMITTER
+            bool "Transmitter"
+            help
+                Transmitter puts the device into transmitting mode.
+
+    endchoice
+
+    menu "GPIO Config"
+
+        config GPIO_RANGE_MAX
+            int
+            default 33 if IDF_TARGET_ESP32
+            default 46 if IDF_TARGET_ESP32S2
+            default 48 if IDF_TARGET_ESP32S3
+            default 18 if IDF_TARGET_ESP32C2
+            default 19 if IDF_TARGET_ESP32C3
+            default 30 if IDF_TARGET_ESP32C6
+
+        config MISO_GPIO
+            int "MISO GPIO"
+            range 0 GPIO_RANGE_MAX
+            default 4
+            help
+                Pin Number to be used as the MISO SPI signal.
+
+        config SCK_GPIO
+            int "SCK GPIO"
+            range 0 GPIO_RANGE_MAX
+            default 5
+            help
+                Pin Number to be used as the SCK SPI signal.
+
+        config MOSI_GPIO
+            int "MOSI GPIO"
+            range 0 GPIO_RANGE_MAX
+            default 8
+            help
+                Pin Number to be used as the MOSI SPI signal.
+
+        config CS_GPIO
+            int "NSS GPIO"
+            range 0 GPIO_RANGE_MAX
+            default 10
+            help
+                Pin Number where the NCS pin of the LoRa module is connected to.
+
+        config RST_GPIO
+            int "RST GPIO"
+            range 0 GPIO_RANGE_MAX
+            default 3
+            help
+                Pin Number where the NRST pin of the LoRa module is connected to.
+    endmenu
+
+    menu "LoRa Parameters Config"
+
+        config LORA_FREQUENCY
+            int "LoRa Frequency (MHz)"
+            range 169 915
+            default 433
+            help
+                Set the operating frequency for the LoRa module in MHz.
+                Common frequencies are:
+                - 169 for 169 MHz
+                - 433 for 433 MHz
+                - 470 for 470 MHz
+                - 866 for 866 MHz
+                - 915 for 915 MHz
+
+        config LORA_CODING_RATE
+            int "LoRa Coding Rate"
+            range 5 8
+            default 8
+            help
+                Set the coding rate for the LoRa module.
+                Coding rates can be 5 (4/5), 6 (4/6), 7 (4/7), or 8 (4/8).
+
+        config LORA_BANDWIDTH
+            int "LoRa Bandwidth"
+            range 0 9
+            default 3
+            help
+                Set the bandwidth for the LoRa module.
+                Bandwidth can be 0 to 9.
+
+        config LORA_SPREADING_FACTOR
+            int "LoRa Spreading Factor"
+            range 6 12
+            default 12
+            help
+                Set the spreading factor for the LoRa module.
+                Spreading factors can be 6 to 12.
+        
+        config TX_POWER
+            int "LoRa transmit power"
+            range 1 17
+            default 17
+            help
+                Set the transmitting power for the lora module. Values are from 0 to 17.
+
+        config LORA_CRC
+            bool "Enable CRC"
+            default y
+            help
+                Enable or disable CRC for the LoRa module.
+    endmenu
+endmenu
