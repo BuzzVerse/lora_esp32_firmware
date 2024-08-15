@@ -11,11 +11,12 @@
 
 const static char *TAG = "bluetooth_manager";
 
-typedef struct
-{
-    double latitude;
-    double longitude;
-} location_data_t;
+typedef struct {
+    uint8_t status;
+    uint16_t altitude;
+    int32_t latitude;
+    int32_t longitude;
+} __attribute__((packed)) location_data_t;
 
 typedef struct
 {
@@ -43,8 +44,8 @@ static int device_write(uint16_t conn_handle, uint16_t attr_handle, struct ble_g
         location_data_t location_data;
         memcpy(&location_data, ctxt->om->om_data, sizeof(location_data_t));
 
-        printf("Latitude: %f\n", location_data.latitude);
-        printf("Longitude: %f\n", location_data.longitude);
+        printf("Latitude: %ld\n", (long int)location_data.latitude);
+        printf("Longitude: %ld\n", (long int)location_data.longitude);
 
         packet_t packet = {0};
         packet.version = (CONFIG_PACKET_VERSION << 4) | 0; // Reserved 4 bits set to 0
@@ -71,7 +72,9 @@ static int device_write(uint16_t conn_handle, uint16_t attr_handle, struct ble_g
     else
     {
         printf("Received data size mismatch\n");
+        printf("Expected size: %d, Received size: %u\n", sizeof(location_data_t), ctxt->om->om_len);
     }
+    vTaskDelay(500 / portTICK_PERIOD_MS);
 
     return 0;
 }
