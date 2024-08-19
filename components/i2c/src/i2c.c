@@ -12,6 +12,11 @@
 
 static const char *TAG = "I2C_MASTER_CUSTOM";
 
+void delay_ms(uint32_t ticks)
+{
+    vTaskDelay(ticks / portTICK_PERIOD_MS);
+}
+
 esp_err_t i2c_init(void)
 {
     i2c_config_t conf = {
@@ -64,7 +69,7 @@ esp_err_t i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t da
 esp_err_t i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t data_len)
 {
 
-    ESP_LOGD(TAG, "Reading from 0x%x", reg_addr);
+    ESP_LOGD(TAG, "Readinreadg from 0x%x", reg_addr);
 
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
@@ -80,11 +85,6 @@ esp_err_t i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t dat
     i2c_master_stop(cmd);
     esp_err_t err = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 20 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
-
-    void delay_ms(uint32_t ticks)
-    {
-        vTaskDelay(ticks / portTICK_PERIOD_MS);
-    }
 
 #if CONFIG_LOG_DEFAULT_LEVEL_DEBUG || CONFIG_LOG_DEFAULT_LEVEL_VERBOSE
     for (int i = 0; i < data_len; i++)
