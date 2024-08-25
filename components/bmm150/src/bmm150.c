@@ -41,21 +41,8 @@ esp_err_t bmm150_init_driver(uint8_t dev_addr)
         ESP_LOGE(TAG_BMM150, "BMM150 init failed.");
         return ESP_FAIL;
     }
-
+    uint8_t i, status = 0;
     bmm150_soft_reset(&dev);
-
-    uint8_t status;
-    bmm150_i2c_read(0x4B,&status,1,dev.intf_ptr);
-    ESP_LOGI(TAG_BMM150,"status: 0x%x", status);
-    status |= 0x01;
-
-     uint8_t status4c;
-    bmm150_i2c_read(0x4C,&status4c,1,dev.intf_ptr);
-    ESP_LOGI(TAG_BMM150,"status4c: 0x%x", status4c);
-
-    bmm150_i2c_write(0x4C,&status,1,dev.intf_ptr);
-    ESP_LOGI(TAG_BMM150,"status: 0x%x", status);
-
 
     // Verify chip ID
     if (dev.chip_id != BMM150_CHIP_ID)
@@ -63,18 +50,8 @@ esp_err_t bmm150_init_driver(uint8_t dev_addr)
         ESP_LOGE(TAG_BMM150, "Unexpected chip ID: 0x%02X", dev.chip_id);
         return ESP_FAIL;
     }
-
-    
-
-    // Perform soft reset
-    ret = bmm150_soft_reset(&dev);
-    if (ret != ESP_OK)
-    {
-        ESP_LOGE(TAG_BMM150, "BMM150 soft reset failed.");
-        return ESP_FAIL;
-    }
-
     ESP_LOGI(TAG_BMM150, "BMM150 init success");
+    
     return ESP_OK;
 }
 
@@ -82,6 +59,10 @@ esp_err_t set_config(struct bmm150_settings *settings)
 {
     esp_err_t rslt;
 
+#if 1// without this sensor does not work
+    uint8_t dev_addr = 0x13;
+    dev.intf_ptr = &dev_addr;
+#endif
     // Set power mode to normal
     settings->pwr_mode = BMM150_POWERMODE_NORMAL;
     rslt = bmm150_set_op_mode(settings, &dev);
@@ -105,11 +86,39 @@ esp_err_t set_config(struct bmm150_settings *settings)
 
 esp_err_t bmm150_read_mag_data_driver(struct bmm150_mag_data *mag_data)
 {
+  #if 1// without this sensor does not work
+  uint8_t dev_addr = 0x13;
+  dev.intf_ptr = &dev_addr;
+  #endif
+
     int8_t rslt = bmm150_read_mag_data(mag_data, &dev);
+
     if (rslt != BMM150_OK)
     {
         ESP_LOGE(TAG_BMM150, "Error reading magnetometer data: %d", rslt);
         return ESP_FAIL;
     }
     return ESP_OK;
+    bmm150_debug();
+}
+#if 1
+void bmm150_dump_registers(uint8_t dev_addr)
+{
+  uint8_t i, status;
+
+
+  dev.intf_ptr = &dev_addr;
+  //  uint8_t device_addr = *((uint8_t *)intf_ptr); // Assuming intf_ptr holds the device address
+  ESP_LOGI(TAG_BMM150,  "==============REGISTER DUMP===================");
+  for (i = 0x40; i <= 0x71; i++) {
+    bmm150_i2c_read(i,&status,1,dev.intf_ptr);
+    ESP_LOGI(TAG_BMM150,"|| addr:0x%2x || val:0x%2x ", i, status);
+  }
+  ESP_LOGI(TAG_BMM150,  "==============================================");
+}
+#endif
+
+void bmm150_debug(void)
+{
+  ESP_LOGI(TAG_BMM150, "dbg:0x%x", *((char *)dev.intf_ptr));
 }

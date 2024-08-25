@@ -21,38 +21,72 @@
 
 #define TAG_MAIN "Main"
 
+#define MAX_VALUE 100
+#define HISTOGRAM_WIDTH 50
+
+// prosty plot z gpt
+void draw_histogram(int x, int y, int z) {
+    int i;
+
+    printf("\033[H\033[J"); // Czyść ekran terminala
+
+    printf("Histogram dla wartości XYZ:\n");
+    
+    printf("X: ");
+    for (i = 0; i < (x * HISTOGRAM_WIDTH / MAX_VALUE); i++) {
+        printf("#");
+    }
+    printf(" (%d)\n", x);
+
+    printf("Y: ");
+    for (i = 0; i < (y * HISTOGRAM_WIDTH / MAX_VALUE); i++) {
+        printf("#");
+    }
+    printf(" (%d)\n", y);
+
+    printf("Z: ");
+    for (i = 0; i < (z * HISTOGRAM_WIDTH / MAX_VALUE); i++) {
+        printf("#");
+    }
+    printf(" (%d)\n", z);
+}
+
 void app_main()
 {
-    struct bmm150_dev dev;
-    struct bmm150_settings settings;
-    struct bmm150_mag_data data;
+    static struct bmm150_dev dev;
+    static struct bmm150_settings settings = {0};
+    static struct bmm150_mag_data data;
 
     i2c_init();
 
     // Initialize the BMM150 driver
-    if (bmm150_init_driver(0x10) == ESP_OK)
+    if (bmm150_init_driver(0x13) == ESP_OK)
     {
-        // Set up the configuration
-        if (set_config(&settings) == ESP_OK)
-        {
-                ESP_LOGI(TAG_MAIN, "Configuration set successfully.");
-        }
-        else
-        {
-            ESP_LOGE(TAG_MAIN, "Failed to set configuration.");
-        }
+      bmm150_debug();
+      if (set_config(&settings) == ESP_OK)
+      {
+    	  ESP_LOGI(TAG_MAIN, "Configuration set successfully.");
+      }
+      else
+      {
+    	  ESP_LOGE(TAG_MAIN, "Failed to set configuration.");
+      }
     }
     else
     {
         ESP_LOGE(TAG_MAIN, "Failed to initialize BMM150 driver.");
     }
-
     vTaskDelay(1000 / portTICK_PERIOD_MS);
 
-    for (;;)
+    for (uint32_t i = 0;; i++)
     {
-        bmm150_read_mag_data_driver(&data);
-        ESP_LOGI(TAG_MAIN, "X: %d, Y: %d, Z: %d", data.x, data.y, data.z);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+      if (0 == i % 100) {
+    	  bmm150_read_mag_data_driver(&data);
+    	  ESP_LOGI(TAG_MAIN, "X: %d, Y: %d, Z: %d", data.x, data.y, data.z);
+    	  // draw_histogram(data.x, data.y, data.z);
+      }
+      vTaskDelay(1);
     }
 }
+
+
