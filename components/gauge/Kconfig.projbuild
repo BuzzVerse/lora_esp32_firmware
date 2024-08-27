@@ -1,0 +1,20 @@
+menu "BQ27441 Fuel Gauge Configuration"
+    config BQ27441_I2C_ADDRESS
+        hex "I2C address"
+        default 0x55
+        help
+            I2C address of the BQ27441 fuel gauge.
+
+    config BQ27441_DESIGN_CAPACITY
+        int "Design Capacity (mAh)"
+        default 3400
+        help
+            The design capacity of the battery in mAh.
+
+    config BQ27441_TERMINATE_VOLTAGE
+        int "Terminate Voltage (mV)"
+        default 3200
+        help
+            The terminate voltage of the battery in mV.
+
+endmenu

@@ -2,14 +2,14 @@
 #include "bq27441_defs.h"
 #include "i2c.h"
 #include "esp_log.h"
+#include <stdbool.h>
 
 static const char *TAG = "BQ27441";
 
+// Function declarations
 static esp_err_t bq27441_unseal(void);
-static esp_err_t bq27441_enter_config_mode(void);
-static esp_err_t bq27441_exit_config_mode(void);
+static esp_err_t bq27441_toggle_config_mode(bool enter);
 static esp_err_t bq27441_write_extended_data(uint8_t classID, uint8_t offset, uint8_t *data, uint8_t len);
-static esp_err_t bq27441_read_flags(uint16_t *flags);
 
 esp_err_t bq27441_init(void)
 {
@@ -24,23 +24,23 @@ esp_err_t bq27441_init(void)
     }
 
     // Enter config mode
-    err = bq27441_enter_config_mode();
+    err = bq27441_toggle_config_mode(true);
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to enter config mode: %s", esp_err_to_name(err));
         return err;
     }
 
-    // Set design capacity for 18650 battery
-    err = bq27441_set_design_capacity(3400); // Assuming 3400mAh for 18650 battery
+    // Set design capacity
+    err = bq27441_set_design_capacity(CONFIG_BQ27441_DESIGN_CAPACITY); // 3400mAh for 18650 battery
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to set design capacity: %s", esp_err_to_name(err));
         return err;
     }
 
-    // Set terminate voltage (example value, adjust as needed)
-    uint16_t terminate_voltage = 3200; // 3200 mV
+    // Set terminate voltage
+    uint16_t terminate_voltage = CONFIG_BQ27441_TERMINATE_VOLTAGE; // 3200 mV for 18650 battery
     uint8_t terminate_voltage_data[2] = {terminate_voltage & 0xFF, (terminate_voltage >> 8) & 0xFF};
     err = bq27441_write_extended_data(BQ27441_ID_STATE, BQ27441_TERMINATE_VOLTAGE_OFFSET, terminate_voltage_data, 2);
     if (ESP_OK != err)
@@ -50,7 +50,7 @@ esp_err_t bq27441_init(void)
     }
 
     // Exit config mode
-    err = bq27441_exit_config_mode();
+    err = bq27441_toggle_config_mode(false);
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to exit config mode: %s", esp_err_to_name(err));
@@ -73,7 +73,7 @@ esp_err_t bq27441_set_design_capacity(uint16_t capacity)
     }
 
     // Enter configuration mode
-    err = bq27441_enter_config_mode();
+    err = bq27441_toggle_config_mode(true);
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to enter config mode: %s", esp_err_to_name(err));
@@ -82,7 +82,7 @@ esp_err_t bq27441_set_design_capacity(uint16_t capacity)
 
     // Write design capacity to extended data
     uint8_t capacity_data[2] = {capacity & 0xFF, (capacity >> 8) & 0xFF};
-    err = bq27441_write_extended_data(BQ27441_ID_STATE, 10, capacity_data, 2);
+    err = bq27441_write_extended_data(BQ27441_ID_STATE, BQ27441_DESIGN_CAPACITY_OFFSET, capacity_data, 2);
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to write design capacity: %s", esp_err_to_name(err));
@@ -90,8 +90,8 @@ esp_err_t bq27441_set_design_capacity(uint16_t capacity)
     }
 
     // Exit configuration mode
-    err = bq27441_exit_config_mode();
-    if (err != ESP_OK)
+    err = bq27441_toggle_config_mode(false);
+    if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to exit config mode: %s", esp_err_to_name(err));
         return err;
@@ -102,8 +102,13 @@ esp_err_t bq27441_set_design_capacity(uint16_t capacity)
 
 esp_err_t bq27441_read_design_capacity(uint16_t *capacity)
 {
+    if (capacity == NULL)
+    {
+        return ESP_ERR_INVALID_ARG;
+    }
+
     uint8_t data[2];
-    esp_err_t err = i2c_read(BQ27441_ADDR, BQ27441_CMD_READ_DESIGN_CAPACITY, data, 2); // Reading from offset 10 in subclass 82
+    esp_err_t err = i2c_read(BQ27441_ADDR, BQ27441_CMD_READ_DESIGN_CAPACITY, data, 2);
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to read design capacity: %s", esp_err_to_name(err));
@@ -115,8 +120,13 @@ esp_err_t bq27441_read_design_capacity(uint16_t *capacity)
 
 esp_err_t bq27441_read_soc(uint8_t *soc)
 {
+    if (soc == NULL)
+    {
+        return ESP_ERR_INVALID_ARG;
+    }
+
     uint8_t data[1];
-    esp_err_t err = i2c_read(BQ27441_ADDR, BQ27441_CMD_SOC, data, 1); // Command to read State of Charge
+    esp_err_t err = i2c_read(BQ27441_ADDR, BQ27441_CMD_SOC, data, 1);
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to read state of charge: %s", esp_err_to_name(err));
@@ -129,8 +139,13 @@ esp_err_t bq27441_read_soc(uint8_t *soc)
 
 esp_err_t bq27441_read_voltage(uint16_t *voltage)
 {
+    if (voltage == NULL)
+    {
+        return ESP_ERR_INVALID_ARG;
+    }
+
     uint8_t data[2];
-    esp_err_t err = i2c_read(BQ27441_ADDR, BQ27441_CMD_VOLTAGE, data, 2); // Command to read Voltage
+    esp_err_t err = i2c_read(BQ27441_ADDR, BQ27441_CMD_VOLTAGE, data, 2);
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to read voltage: %s", esp_err_to_name(err));
@@ -142,19 +157,19 @@ esp_err_t bq27441_read_voltage(uint16_t *voltage)
 
 static esp_err_t bq27441_unseal(void)
 {
-    uint8_t unseal_key[2] = {0x14, 0x04}; // Typical unseal key for BQ27441
+    uint8_t unseal_key[2] = {BQ27441_UNSEAL_KEY0, BQ27441_UNSEAL_KEY1}; // Use defined unseal keys
     esp_err_t err;
 
     // Send the unseal key twice
-    err = i2c_write(BQ27441_ADDR, 0x00, unseal_key, 2);
+    err = i2c_write(BQ27441_ADDR, BQ27441_CMD_CONTROL, unseal_key, 2);
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to unseal device: %s", esp_err_to_name(err));
         return err;
     }
 
-    err = i2c_write(BQ27441_ADDR, 0x00, unseal_key, 2);
-    if (err != ESP_OK)
+    err = i2c_write(BQ27441_ADDR, BQ27441_CMD_CONTROL, unseal_key, 2);
+    if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to unseal device: %s", esp_err_to_name(err));
         return err;
@@ -163,16 +178,21 @@ static esp_err_t bq27441_unseal(void)
     return ESP_OK;
 }
 
-static esp_err_t bq27441_enter_config_mode(void)
+static esp_err_t bq27441_toggle_config_mode(bool enter)
 {
-    uint8_t cmd[2] = {BQ27441_CMD_SET_CFGUPDATE & 0xFF, (BQ27441_CMD_SET_CFGUPDATE >> 8) & 0xFF}; // SET_CFGUPDATE command
-    return i2c_write(BQ27441_ADDR, 0x00, cmd, 2);
-}
+    uint8_t cmd[2];
+    if (enter)
+    {
+        cmd[0] = BQ27441_CMD_SET_CFGUPDATE & 0xFF;
+        cmd[1] = (BQ27441_CMD_SET_CFGUPDATE >> 8) & 0xFF;
+    }
+    else
+    {
+        cmd[0] = BQ27441_CMD_SOFT_RESET & 0xFF;
+        cmd[1] = (BQ27441_CMD_SOFT_RESET >> 8) & 0xFF;
+    }
 
-static esp_err_t bq27441_exit_config_mode(void)
-{
-    uint8_t cmd[2] = {BQ27441_CMD_SOFT_RESET & 0xFF, (BQ27441_CMD_SOFT_RESET >> 8) & 0xFF}; // SOFT_RESET command
-    return i2c_write(BQ27441_ADDR, 0x00, cmd, 2);
+    return i2c_write(BQ27441_ADDR, BQ27441_CMD_CONTROL, cmd, 2);
 }
 
 static esp_err_t bq27441_write_extended_data(uint8_t classID, uint8_t offset, uint8_t *data, uint8_t len)
@@ -241,20 +261,5 @@ static esp_err_t bq27441_write_extended_data(uint8_t classID, uint8_t offset, ui
         return err;
     }
 
-    return ESP_OK;
-}
-
-static esp_err_t bq27441_read_flags(uint16_t *flags)
-{
-    uint8_t data[2];
-    esp_err_t err = i2c_read(BQ27441_ADDR, BQ27441_CMD_READ_FLAGS, data, 2); // Command to read flags
-
-    if (ESP_OK != err)
-    {
-        ESP_LOGE(TAG, "Failed to read flags: %s", esp_err_to_name(err));
-        return err;
-    }
-
-    *flags = (data[1] << 8) | data[0];
     return ESP_OK;
 }
