@@ -7,6 +7,7 @@
 #include "driver/gpio.h"
 
 #define SPI_WRITE_OPERATION 0x80
+#define SPI_DEFAULT_BYTE 0xff
 #define SPI_DELAY_100MS 100
 #define MAX_BUFFER_LEN 128
 
@@ -134,7 +135,7 @@ api_status_t spi_read(uint8_t reg, uint8_t *val)
         return API_NULL_POINTER_ERROR;
     }
 
-    uint8_t out[2] = {reg, 0xff};
+    uint8_t out[2] = {reg, SPI_DEFAULT_BYTE};
     uint8_t in[2];
 
     spi_transaction_t transaction = {
@@ -174,7 +175,7 @@ api_status_t spi_read_buf(uint8_t reg, uint8_t *val, uint8_t len)
 
     for (uint8_t i = 0; i < len; i++)
     {
-        out[i + 1] = 0xff;
+        out[i + 1] = SPI_DEFAULT_BYTE;
     }
 
     spi_transaction_t transaction = {
