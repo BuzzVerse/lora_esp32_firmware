@@ -1,0 +1,89 @@
+#ifndef BQ27441_DEFS_H
+#define BQ27441_DEFS_H
+
+/**
+ * @file bq27441_defs.h
+ * @brief Definitions for the BQ27441 fuel gauge.
+ */
+
+/** 
+ * @brief 7-bit I2C address of the BQ27441 fuel gauge. 
+ */
+#define BQ27441_ADDR 0x55
+
+/** 
+ * @brief Offset for the design capacity register in subclass 82. 
+ */
+#define BQ27441_DESIGN_CAPACITY_OFFSET 0x0A
+
+/** 
+ * @brief Offset for the terminate voltage register in subclass 82. 
+ */
+#define BQ27441_TERMINATE_VOLTAGE_OFFSET 0x0C
+
+/** 
+ * @brief Offset for the design capacity read command. 
+ */
+#define BQ27441_CMD_READ_DESIGN_CAPACITY 0x4A
+
+/** 
+ * @brief Command to read the State of Charge (SoC). 
+ */
+#define BQ27441_CMD_SOC 0x1C
+
+/** 
+ * @brief Command to read the voltage. 
+ */
+#define BQ27441_CMD_VOLTAGE 0x04
+
+/** 
+ * @brief Data class register address. 
+ */
+#define BQ27441_REG_CLASS_ID 0x3E
+
+/** 
+ * @brief Data block control register address. 
+ */
+#define BQ27441_REG_BLOCK_DATA_CONTROL 0x61
+
+/** 
+ * @brief Data block offset register address. 
+ */
+#define BQ27441_REG_BLOCK_OFFSET 0x3F
+
+/** 
+ * @brief Data block start address. 
+ */
+#define BQ27441_REG_BLOCK_DATA 0x40
+
+/** 
+ * @brief Checksum register address. 
+ */
+#define BQ27441_REG_CHECKSUM 0x60
+
+/** 
+ * @brief Command for entering config mode (SET_CFGUPDATE).
+ */
+#define BQ27441_CMD_SET_CFGUPDATE 0x0013
+
+/** 
+ * @brief Command for soft reset (SOFT_RESET).
+ */
+#define BQ27441_CMD_SOFT_RESET 0x0042
+
+/** 
+ * @brief Command for exiting config mode (EXIT_CFGUPDATE).
+ */
+#define BQ27441_CMD_EXIT_CFGUPDATE 0x0043
+
+/** 
+ * @brief Data class ID for state data.
+ */
+#define BQ27441_ID_STATE 82
+
+/** 
+ * @brief Command to read flags.
+ */
+#define BQ27441_CMD_READ_FLAGS 0x06
+
+#endif // BQ27441_DEFS_H
