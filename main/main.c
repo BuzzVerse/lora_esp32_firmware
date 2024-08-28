@@ -23,16 +23,22 @@
 #if CONFIG_LORA_TRANSMITTER
 static void task_tx(void *pvParameters);
 
+static sensor_config_t bme280_config;
+
 static void initialize_sensors(void)
 {
     esp_err_t bme_rc = ESP_OK;
- 
+
     i2c_init();
 
-    if (ESP_OK != bme280_init_driver(CONFIG_BME280_I2C_ADDRESS))
+    // Configure BME280
+    bme280_config.i2c_address = CONFIG_BME280_I2C_ADDRESS;
+    bme280_config.write = i2c_write;
+    bme280_config.read = i2c_read;
+
+    if (ESP_OK != bme280_init_driver(&bme280_config))
     {
         ESP_LOGE(TAG_MAIN, "BME280 initialization failed");
-        // not sure if this should restart, but also not sure what else to do here?
         esp_restart();
     }
 
@@ -44,38 +50,37 @@ static void initialize_sensors(void)
     }
 
     uint16_t capacity;
-        bq_rc = bq27441_read_design_capacity(&capacity);
-        if (bq_rc == ESP_OK)
-        {
-            ESP_LOGI(TAG_MAIN, "Design Capacity: %d mAh", capacity);
-        }
-        else
-        {
-            ESP_LOGE(TAG_MAIN, "Failed to read design capacity");
-        }
+    bq_rc = bq27441_read_design_capacity(&capacity);
+    if (bq_rc == ESP_OK)
+    {
+        ESP_LOGI(TAG_MAIN, "Design Capacity: %d mAh", capacity);
+    }
+    else
+    {
+        ESP_LOGE(TAG_MAIN, "Failed to read design capacity");
+    }
 
-        uint8_t soc;
-        bq_rc = bq27441_read_soc(&soc);
-        if (bq_rc == ESP_OK)
-        {
-            ESP_LOGI(TAG_MAIN, "State of Charge: %d %%", soc);
-        }
-        else
-        {
-            ESP_LOGE(TAG_MAIN, "Failed to read state of charge");
-        }
+    uint8_t soc;
+    bq_rc = bq27441_read_soc(&soc);
+    if (bq_rc == ESP_OK)
+    {
+        ESP_LOGI(TAG_MAIN, "State of Charge: %d %%", soc);
+    }
+    else
+    {
+        ESP_LOGE(TAG_MAIN, "Failed to read state of charge");
+    }
 
-        uint16_t voltage;
-        bq_rc = bq27441_read_voltage(&voltage);
-        if (bq_rc == ESP_OK)
-        {
-            ESP_LOGI(TAG_MAIN, "Voltage: %d mV", voltage);
-        }
-        else
-        {
-            ESP_LOGE(TAG_MAIN, "Failed to read voltage");
-        }
-
+    uint16_t voltage;
+    bq_rc = bq27441_read_voltage(&voltage);
+    if (bq_rc == ESP_OK)
+    {
+        ESP_LOGI(TAG_MAIN, "Voltage: %d mV", voltage);
+    }
+    else
+    {
+        ESP_LOGE(TAG_MAIN, "Failed to read voltage");
+    }
 
     bme_rc += bme280_set_oversamp(BME280_OVERSAMP_16X, BME280_OVERSAMP_16X, BME280_OVERSAMP_16X);
     bme_rc += bme280_set_settings(STANDBY_10MS, BME280_FILTER_COEFF_16, BME280_NORMAL_MODE);
