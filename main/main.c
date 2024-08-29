@@ -60,7 +60,7 @@ void app_main()
     i2c_init();
 
     // Initialize the BMM150 driver
-    if (bmm150_init_driver(0x13) == ESP_OK)
+    if (bmm150_init_driver() == ESP_OK)
     {
       bmm150_debug();
       if (set_config(&settings) == ESP_OK)
@@ -82,8 +82,8 @@ void app_main()
     {
       if (0 == i % 100) {
     	  bmm150_read_mag_data_driver(&data);
-    	  ESP_LOGI(TAG_MAIN, "X: %d, Y: %d, Z: %d", data.x, data.y, data.z);
-    	  // draw_histogram(data.x, data.y, data.z);
+    	  //ESP_LOGI(TAG_MAIN, "X: %d, Y: %d, Z: %d", data.x, data.y, data.z);
+    	  draw_histogram(data.x, data.y, data.z);
       }
       vTaskDelay(1);
     }

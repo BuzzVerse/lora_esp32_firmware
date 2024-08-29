@@ -385,6 +385,7 @@
 
 #define BMM150_GET_BITS_POS_0(reg_data, bitname)  (reg_data & (bitname##_MSK))
 
+#define BMM150_ADDR 0x13
 /********************************************************/
 
 /*!
