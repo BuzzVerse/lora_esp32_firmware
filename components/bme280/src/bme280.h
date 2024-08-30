@@ -1,9 +1,12 @@
-#ifndef BME280_H
-#define BME280_H
+#ifndef _BME280_H_
+#define _BME280_H_
 
 #include "bme280_defs.h"
 #include "esp_err.h"
-#include "i2c_defs.h"
+#include "sensor.h"
+
+extern sensor_interface_t bme280_interface; // Extern declaration
+extern struct bme280_t bme280; // Extern declaration
 
 /**
  * @brief Function to initialize the BME280 sensor.
@@ -12,7 +15,7 @@
  *
  * @returns ESP_OK if successful, ESP_FAIL if unsuccessful
  */
-esp_err_t bme280_init_driver(sensor_config_t *sensor_config);
+esp_err_t bme280_init_driver(sensor_context_t *sensor_config);
 
 /**
  * @brief Function to set oversampling settings.
@@ -63,4 +66,4 @@ esp_err_t bme280_read_temperature(double *temperature);
  */
 esp_err_t bme280_read_humidity(double *humidity);
 
-#endif // BME280_H
+#endif // _BME280_H_

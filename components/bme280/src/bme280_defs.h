@@ -1,5 +1,5 @@
-#ifndef BME280_DEFS_H
-#define BME280_DEFS_H
+#ifndef _BME280_DEFS_H_
+#define _BME280_DEFS_H_
 
 #include "bme280_lib.h"
 
@@ -76,4 +76,4 @@ typedef enum
     MODE_NORMAL = BME280_NORMAL_MODE  /**< Normal mode*/
 } bme280_power_mode_t;
 
-#endif // BME280_DEFS_H
+#endif // _BME280_DEFS_H_

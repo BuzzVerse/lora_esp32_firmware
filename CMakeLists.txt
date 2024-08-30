@@ -10,6 +10,7 @@ set(EXTRA_COMPONENT_DIRS
     "./components/lora"
     "./components/gauge"
     "./components/i2c"
+    "./components/sensor"
     $ENV{IDF_PATH}/examples/common_components/protocol_examples_common
     )
 

@@ -3,7 +3,6 @@
 
 /**
  * @file bq27441_defs.h
- * @author Bykowski Olaf
  * @brief Definitions for the BQ27441 fuel gauge.
  */
 

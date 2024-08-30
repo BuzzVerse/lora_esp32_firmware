@@ -1,13 +1,13 @@
 menu "I2C configuration"
     config I2C_MASTER_SCL_IO 
         int "Master SCL pin"
-        default 7
+        default 18
         help
             Pin the master SCL line is connected to
     
     config I2C_MASTER_SDA_IO
         int "Master SDA pin"
-        default 6
+        default 17
         help
             Pin the master SDA line is connected to
     
