@@ -14,7 +14,7 @@ static esp_err_t bq27441_write_extended_data(const bq27441_config_t *config, uin
 
 esp_err_t bq27441_init(sensor_context_t *ctx)
 {
-    if (ctx == NULL || ctx->driver_data == NULL)
+    if (NULL == ctx || NULL == ctx->driver_data)
     {
         ESP_LOGE(TAG, "Invalid context or driver data");
         return ESP_ERR_INVALID_ARG;
@@ -73,7 +73,7 @@ esp_err_t bq27441_init(sensor_context_t *ctx)
 
 esp_err_t bq27441_set_design_capacity(sensor_context_t *ctx, uint16_t capacity)
 {
-    if (ctx == NULL || ctx->driver_data == NULL)
+    if (NULL == ctx || NULL == ctx->driver_data)
     {
         ESP_LOGE(TAG, "Invalid context or driver data");
         return ESP_ERR_INVALID_ARG;
@@ -120,7 +120,7 @@ esp_err_t bq27441_set_design_capacity(sensor_context_t *ctx, uint16_t capacity)
 
 esp_err_t bq27441_read_design_capacity(sensor_context_t *ctx, uint16_t *capacity)
 {
-    if (ctx == NULL || ctx->driver_data == NULL || capacity == NULL)
+    if (NULL == ctx || NULL == ctx->driver_data || NULL == capacity)
     {
         return ESP_ERR_INVALID_ARG;
     }
@@ -139,7 +139,7 @@ esp_err_t bq27441_read_design_capacity(sensor_context_t *ctx, uint16_t *capacity
 
 esp_err_t bq27441_read_soc(sensor_context_t *ctx, uint8_t *soc)
 {
-    if (ctx == NULL || ctx->driver_data == NULL || soc == NULL)
+    if (NULL == ctx || NULL == ctx->driver_data || NULL == soc)
     {
         return ESP_ERR_INVALID_ARG;
     }
@@ -159,7 +159,7 @@ esp_err_t bq27441_read_soc(sensor_context_t *ctx, uint8_t *soc)
 
 esp_err_t bq27441_read_voltage(sensor_context_t *ctx, uint16_t *voltage)
 {
-    if (ctx == NULL || ctx->driver_data == NULL || voltage == NULL)
+    if (NULL == ctx || NULL == ctx->driver_data || NULL == voltage)
     {
         return ESP_ERR_INVALID_ARG;
     }
@@ -287,12 +287,12 @@ static esp_err_t bq27441_write_extended_data(const bq27441_config_t *config, uin
 
 int bq27441_sensor_init(void *context)
 {
-    return (bq27441_init((sensor_context_t *)context) == ESP_OK) ? 0 : -1;
+    return (ESP_OK == bq27441_init((sensor_context_t *)context)) ? 0 : -1;
 }
 
 int bq27441_sensor_read(void *context, uint8_t *data, size_t length)
 {
-    if (length < 3 * sizeof(uint16_t))
+    if (3 * sizeof(uint16_t) > length)
     {
         return -1; // Insufficient buffer size
     }
@@ -301,9 +301,9 @@ int bq27441_sensor_read(void *context, uint8_t *data, size_t length)
     uint16_t capacity, voltage;
     uint8_t soc;
 
-    if (bq27441_read_design_capacity(ctx, &capacity) != ESP_OK ||
-        bq27441_read_soc(ctx, &soc) != ESP_OK ||
-        bq27441_read_voltage(ctx, &voltage) != ESP_OK)
+    if (ESP_OK != bq27441_read_design_capacity(ctx, &capacity) ||
+        ESP_OK != bq27441_read_soc(ctx, &soc) ||
+        ESP_OK != bq27441_read_voltage(ctx, &voltage))
     {
         return -1; // Error occurred while reading
     }

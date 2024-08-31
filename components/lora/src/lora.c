@@ -37,7 +37,7 @@ size_t get_packet_size(DataType type);
 
 void lora_send_task(void *pvParameters)
 {
-    if (pvParameters == NULL)
+    if (NULL == pvParameters)
     {
         ESP_LOGE(LORA_TAG, "pvParameters is NULL in lora_send_task.\n");
         return;
@@ -98,7 +98,7 @@ void sendPacketTimeoutHandler(TimerHandle_t xTimer)
     ESP_LOGE(LORA_TAG, "Send packet timeout.\n");
     timeout_occurred = true;
 
-    if (sendTaskHandle != NULL)
+    if (NULL != sendTaskHandle)
     {
         vTaskDelete(sendTaskHandle);
     }
@@ -165,13 +165,13 @@ lora_status_t lora_send(packet_t *packet)
 
     BaseType_t xReturned = xTaskCreate(lora_send_task, "LoRaSendTask", 2048, (void *)packet, tskIDLE_PRIORITY, &sendTaskHandle);
 
-    if (xReturned != pdPASS)
+    if (pdPASS != xReturned)
     {
         ESP_LOGE(LORA_TAG, "Failed to create send task.\n");
         return LORA_FAILED_SEND_PACKET;
     }
 
-    if (xTimerStart(sendTimer, 0) != pdPASS)
+    if (pdPASS != xTimerStart(sendTimer, 0))
     {
         ESP_LOGE(LORA_TAG, "Failed to start timer.\n");
         return LORA_FAILED_SEND_PACKET;
