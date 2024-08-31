@@ -24,7 +24,7 @@ esp_err_t bq27441_init(sensor_context_t *ctx)
     esp_err_t err = ESP_OK;
 
     // print the config
-    ESP_LOGI(TAG, "BQ27441 Config: I2C Address: 0x%02X, Design Capacity: %d mAh, Terminate Voltage: %d mV", config->i2c_address, config->design_capacity, config->terminate_voltage);
+    ESP_LOGD(TAG, "BQ27441 Config: I2C Address: 0x%02X, Design Capacity: %d mAh, Terminate Voltage: %d mV", config->i2c_address, config->design_capacity, config->terminate_voltage);
 
     // Ensure the device is unsealed
     err = bq27441_unseal(config);

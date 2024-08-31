@@ -38,7 +38,7 @@ esp_err_t bme280_init_driver(sensor_context_t *sensor_config) {
     bme280.bus_read = bme280_i2c_read;
 
     // Print the dev_addr to confirm the address being used
-    ESP_LOGI(TAG_BME280, "BME280 I2C address: 0x%02X", bme280.dev_addr);
+    ESP_LOGD(TAG_BME280, "BME280 I2C address: 0x%02X", bme280.dev_addr);
 
     if (SUCCESS != bme280_init(&bme280)) {
         ESP_LOGE(TAG_BME280, "BME280 init failed.");
