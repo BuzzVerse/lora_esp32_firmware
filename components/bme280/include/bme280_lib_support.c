@@ -119,7 +119,7 @@ s32 bme280_data_readout_template(void);
  *	I2C address: dev_addr
  *	Chip id of the sensor: chip_id
  *---------------------------------------------------------------------------*/
-struct bme280_t bme280;
+static struct bme280_t bme280;
 /* This function is an example for reading sensor data
  *	\param: None
  *	\return: communication result

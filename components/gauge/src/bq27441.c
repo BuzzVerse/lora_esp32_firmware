@@ -68,6 +68,7 @@ esp_err_t bq27441_init(sensor_context_t *ctx)
         return err;
     }
 
+    ESP_LOGI(TAG, "BQ27441 initialized successfully");
     return ESP_OK;
 }
 
@@ -127,7 +128,7 @@ esp_err_t bq27441_read_design_capacity(sensor_context_t *ctx, uint16_t *capacity
 
     bq27441_config_t *config = (bq27441_config_t *)ctx->driver_data;
     uint8_t data[2];
-    esp_err_t err = i2c_read(config->i2c_address, BQ27441_CMD_READ_DESIGN_CAPACITY, data, 2);
+    esp_err_t err = i2c_read_custom(config->i2c_address, BQ27441_CMD_READ_DESIGN_CAPACITY, data, 2);
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to read design capacity: %s", esp_err_to_name(err));
@@ -146,7 +147,7 @@ esp_err_t bq27441_read_soc(sensor_context_t *ctx, uint8_t *soc)
 
     bq27441_config_t *config = (bq27441_config_t *)ctx->driver_data;
     uint8_t data[1];
-    esp_err_t err = i2c_read(config->i2c_address, BQ27441_CMD_SOC, data, 1);
+    esp_err_t err = i2c_read_custom(config->i2c_address, BQ27441_CMD_SOC, data, 1);
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to read state of charge: %s", esp_err_to_name(err));
@@ -166,7 +167,7 @@ esp_err_t bq27441_read_voltage(sensor_context_t *ctx, uint16_t *voltage)
 
     bq27441_config_t *config = (bq27441_config_t *)ctx->driver_data;
     uint8_t data[2];
-    esp_err_t err = i2c_read(config->i2c_address, BQ27441_CMD_VOLTAGE, data, 2);
+    esp_err_t err = i2c_read_custom(config->i2c_address, BQ27441_CMD_VOLTAGE, data, 2);
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to read voltage: %s", esp_err_to_name(err));
@@ -182,14 +183,14 @@ static esp_err_t bq27441_unseal(const bq27441_config_t *config)
     esp_err_t err;
 
     // Send the unseal key twice
-    err = i2c_write(config->i2c_address, BQ27441_CMD_CONTROL, unseal_key, 2);
+    err = i2c_write_custom(config->i2c_address, BQ27441_CMD_CONTROL, unseal_key, 2);
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to unseal device: %s", esp_err_to_name(err));
         return err;
     }
 
-    err = i2c_write(config->i2c_address, BQ27441_CMD_CONTROL, unseal_key, 2);
+    err = i2c_write_custom(config->i2c_address, BQ27441_CMD_CONTROL, unseal_key, 2);
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to unseal device: %s", esp_err_to_name(err));
@@ -213,7 +214,7 @@ static esp_err_t bq27441_toggle_config_mode(const bq27441_config_t *config, bool
         cmd[1] = (BQ27441_CMD_SOFT_RESET >> 8) & 0xFF;
     }
 
-    return i2c_write(config->i2c_address, BQ27441_CMD_CONTROL, cmd, 2);
+    return i2c_write_custom(config->i2c_address, BQ27441_CMD_CONTROL, cmd, 2);
 }
 
 static esp_err_t bq27441_write_extended_data(const bq27441_config_t *config, uint8_t classID, uint8_t offset, uint8_t *data, uint8_t len)
@@ -222,7 +223,7 @@ static esp_err_t bq27441_write_extended_data(const bq27441_config_t *config, uin
 
     // Block data control
     uint8_t block_data_control = 0x00;
-    err = i2c_write(config->i2c_address, BQ27441_REG_BLOCK_DATA_CONTROL, &block_data_control, 1);
+    err = i2c_write_custom(config->i2c_address, BQ27441_REG_BLOCK_DATA_CONTROL, &block_data_control, 1);
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to write block data control: %s", esp_err_to_name(err));
@@ -230,7 +231,7 @@ static esp_err_t bq27441_write_extended_data(const bq27441_config_t *config, uin
     }
 
     // Data class
-    err = i2c_write(config->i2c_address, BQ27441_REG_CLASS_ID, &classID, 1);
+    err = i2c_write_custom(config->i2c_address, BQ27441_REG_CLASS_ID, &classID, 1);
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to write data class: %s", esp_err_to_name(err));
@@ -239,7 +240,7 @@ static esp_err_t bq27441_write_extended_data(const bq27441_config_t *config, uin
 
     // Data block
     uint8_t block_offset = offset / 32;
-    err = i2c_write(config->i2c_address, BQ27441_REG_BLOCK_OFFSET, &block_offset, 1);
+    err = i2c_write_custom(config->i2c_address, BQ27441_REG_BLOCK_OFFSET, &block_offset, 1);
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to write data block: %s", esp_err_to_name(err));
@@ -250,7 +251,7 @@ static esp_err_t bq27441_write_extended_data(const bq27441_config_t *config, uin
     for (uint8_t i = 0; i < len; i++)
     {
         uint8_t data_offset = offset % 32 + i;
-        err = i2c_write(config->i2c_address, BQ27441_REG_BLOCK_DATA + data_offset, &data[i], 1);
+        err = i2c_write_custom(config->i2c_address, BQ27441_REG_BLOCK_DATA + data_offset, &data[i], 1);
         if (ESP_OK != err)
         {
             ESP_LOGE(TAG, "Failed to write data: %s", esp_err_to_name(err));
@@ -262,7 +263,7 @@ static esp_err_t bq27441_write_extended_data(const bq27441_config_t *config, uin
     uint8_t checksum = 0;
     uint8_t data_block[32];
 
-    err = i2c_read(config->i2c_address, BQ27441_REG_BLOCK_DATA, data_block, 32);
+    err = i2c_read_custom(config->i2c_address, BQ27441_REG_BLOCK_DATA, data_block, 32);
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to read data block: %s", esp_err_to_name(err));
@@ -275,7 +276,7 @@ static esp_err_t bq27441_write_extended_data(const bq27441_config_t *config, uin
     }
     checksum = 255 - checksum;
 
-    err = i2c_write(config->i2c_address, BQ27441_REG_CHECKSUM, &checksum, 1);
+    err = i2c_write_custom(config->i2c_address, BQ27441_REG_CHECKSUM, &checksum, 1);
     if (ESP_OK != err)
     {
         ESP_LOGE(TAG, "Failed to write checksum: %s", esp_err_to_name(err));
