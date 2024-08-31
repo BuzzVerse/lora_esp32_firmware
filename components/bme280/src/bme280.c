@@ -7,6 +7,7 @@
 #define TAG_BME280 "BME280"
 
 struct bme280_t bme280; // This is the BME280-specific data
+static bme280_config_t bme280_config;
 
 // Wrapper function for the delay to match the required signature
 void bme280_delay_msec(u32 ms) {
@@ -31,8 +32,10 @@ esp_err_t bme280_init_driver(sensor_context_t *sensor_config) {
         return ESP_FAIL;
     }
 
+    bme280_config = *((bme280_config_t *)sensor_config->driver_data); 
+
     // Cast driver_data to the I2C address correctly
-    bme280.dev_addr = (u8)(uintptr_t)sensor_config->driver_data; 
+    bme280.dev_addr = bme280_config.i2c_address;
     bme280.delay_msec = bme280_delay_msec;
     bme280.bus_write = bme280_i2c_write;
     bme280.bus_read = bme280_i2c_read;

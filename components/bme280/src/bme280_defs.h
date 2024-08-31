@@ -2,6 +2,7 @@
 #define _BME280_DEFS_H_
 
 #include "bme280_lib.h"
+#include <stdint.h>
 
 /**
  * @file bme280_defs.h
@@ -9,6 +10,14 @@
  *
  * @brief This file contains definitions for the BME280 driver.
  */
+
+/**
+ * @brief Configuration structure for BQ27441.
+ */
+typedef struct
+{
+    uint8_t i2c_address;
+} bme280_config_t;
 
 /**
  * @brief Oversampling values for the BME280 sensor.

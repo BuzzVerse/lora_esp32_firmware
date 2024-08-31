@@ -2,6 +2,7 @@
 #include "bq27441_defs.h"
 #include "i2c.h"
 #include "esp_log.h"
+#include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 

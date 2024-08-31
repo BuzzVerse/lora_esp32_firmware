@@ -10,21 +10,6 @@
  */
 
 /**
- * @brief Sensor interface functions for BQ27441.
- */
-extern sensor_interface_t bq27441_interface;
-
-/**
- * @brief Configuration structure for BQ27441.
- */
-typedef struct
-{
-    uint8_t i2c_address;
-    uint16_t design_capacity;   // in mAh
-    uint16_t terminate_voltage; // in mV
-} bq27441_config_t;
-
-/**
  * @brief Initialize the BQ27441 fuel gauge.
  *
  * This function unseals the device, enters configuration mode, sets the design capacity,
