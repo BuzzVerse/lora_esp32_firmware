@@ -109,14 +109,14 @@ esp_err_t bme280_read_humidity(double *humidity) {
 }
 
 // Implement the sensor interface functions
-int bme280_sensor_init(void* context) {
+esp_err_t bme280_sensor_init(void* context) {
     sensor_context_t* ctx = (sensor_context_t*)context;
-    return (ESP_OK == bme280_init_driver(ctx)) ? 0 : -1;
+    return bme280_init_driver(ctx);
 }
 
 int bme280_sensor_read(void* context, uint8_t* data, size_t length) {
     if (3 * sizeof(double) > length) {
-        return -1; // Insufficient buffer size
+        return ESP_FAIL; // Insufficient buffer size
     }
 
     double temperature, pressure, humidity;
@@ -124,7 +124,7 @@ int bme280_sensor_read(void* context, uint8_t* data, size_t length) {
     if (ESP_OK != bme280_read_temperature(&temperature) ||
         ESP_OK != bme280_read_pressure(&pressure) ||
         ESP_OK != bme280_read_humidity(&humidity)) {
-        return -1;  // Error occurred while reading
+        return ESP_FAIL;
     }
 
     // Store the data in the provided buffer
@@ -132,12 +132,12 @@ int bme280_sensor_read(void* context, uint8_t* data, size_t length) {
     memcpy(data + sizeof(double), &pressure, sizeof(double));
     memcpy(data + 2 * sizeof(double), &humidity, sizeof(double));
 
-    return 0;  // Success
+    return ESP_OK;  // Success
 }
 
 int bme280_sensor_write(void* context, const uint8_t* data, size_t length) {
     // No specific write operations are necessary for BME280 in this context
-    return 0; // Success
+    return ESP_OK; // Success
 }
 
 // Define the sensor interface for BME280 AFTER all functions are defined

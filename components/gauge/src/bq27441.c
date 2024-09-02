@@ -286,16 +286,16 @@ static esp_err_t bq27441_write_extended_data(const bq27441_config_t *config, uin
     return ESP_OK;
 }
 
-int bq27441_sensor_init(void *context)
+esp_err_t bq27441_sensor_init(void *context)
 {
-    return (ESP_OK == bq27441_init((sensor_context_t *)context)) ? 0 : -1;
+    return bq27441_init((sensor_context_t *)context);
 }
 
-int bq27441_sensor_read(void *context, uint8_t *data, size_t length)
+esp_err_t bq27441_sensor_read(void *context, uint8_t *data, size_t length)
 {
     if (3 * sizeof(uint16_t) > length)
     {
-        return -1; // Insufficient buffer size
+        return ESP_FAIL; // Insufficient buffer size
     }
 
     sensor_context_t *ctx = (sensor_context_t *)context;
@@ -306,7 +306,7 @@ int bq27441_sensor_read(void *context, uint8_t *data, size_t length)
         ESP_OK != bq27441_read_soc(ctx, &soc) ||
         ESP_OK != bq27441_read_voltage(ctx, &voltage))
     {
-        return -1; // Error occurred while reading
+        return ESP_FAIL; // Error occurred while reading
     }
 
     // Store the data in the provided buffer
@@ -314,13 +314,13 @@ int bq27441_sensor_read(void *context, uint8_t *data, size_t length)
     memcpy(data + sizeof(uint16_t), &soc, sizeof(uint8_t));
     memcpy(data + sizeof(uint16_t) + sizeof(uint8_t), &voltage, sizeof(uint16_t));
 
-    return 0; // Success
+    return ESP_OK; // Success
 }
 
-int bq27441_sensor_write(void *context, const uint8_t *data, size_t length)
+esp_err_t bq27441_sensor_write(void *context, const uint8_t *data, size_t length)
 {
     // BQ27441 may not have significant write operations in this simplified case
-    return 0; // Success
+    return ESP_OK; // Success
 }
 
 sensor_interface_t bq27441_interface = {
