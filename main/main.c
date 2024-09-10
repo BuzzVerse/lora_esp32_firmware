@@ -15,35 +15,252 @@
 #include "mqtt_client.h"
 #include "protocol_examples_common.h"
 #include "low_power_mode.h"
+#include "nvs_flash.h"
+#include "nvs.h"
 
 #define TAG "Main"
 
-//#define CONFIG_LORA_TRANSMITTER 1
-#define xBOOTUP_NO_BME280	0x01	// Set when BME280 was not initialized
-#define xBOOTUP_NO_LORA		0x02	// Set when LoRa init fails
+#define MAX_DATA_TYPES 33
 
-static uint8_t bootup_status = {0};
-
-static void self_test(void)
+typedef struct bme280
 {
-	ESP_LOGI(TAG, "--SELF TEST BEGIN--");
-	if (bootup_status & xBOOTUP_NO_BME280)
-	{
-		ESP_LOGI(TAG, "--NO BME280");
-		ESP_LOGI(TAG, "--Initializing BME280 driver: %s", ESP_OK == bme280_init_driver(CONFIG_BME280_I2C_ADDRESS)?"OK":"FAILED");
-	}
-	if (bootup_status & xBOOTUP_NO_LORA)
-	{
-		ESP_LOGI(TAG, "--NO LORA");
-		ESP_LOGI(TAG, "--Initializing LoRa driver: %s", LORA_OK == lora_init()?"OK":"FAILED");
-	}
-	ESP_LOGI(TAG, "--SELF TEST END--");
+	double temp_raw;
+	double press_raw;
+	double hum_raw;
+	uint16_t comms_err_cnt;					// Communication error counter
+} bme280_t;
+
+typedef struct sensor
+{
+	bme280_t bme280;
+} sensor_t;
+
+// dummy struct
+typedef struct batt
+{
+	uint8_t cap;			// Capacity in % range 0-100%
+} batt_t;
+
+// dummy struct
+typedef struct radio
+{
+	uint8_t	bw;				// Bandwidth
+	uint8_t sf;				// Spreading factor
+	uint8_t cr;				// Coding rate
+	uint16_t comms_err_cnt;	// Communication error counter
+} radio_t;
+
+typedef struct node
+{
+	uint8_t status;
+	uint8_t batt_cap;
+	sensor_t sensor;
+	radio_t radio;
+	batt_t batt;
+} node_t;
+
+//#define CONFIG_LORA_TRANSMITTER 1
+#define xNODE_BME280_FAIL	0x80	// Set when BME280 was not initialized
+#define xNODE_LORA_FAIL		0x10	// Set when LoRa init fails
+#define xNODE_LOW_BATT		0x08	// Set when low battery detected
+#define xNODE_MQTT_FAIL		0x04	// Set when MQTT fails
+
+static node_t node = {0};
+static packet_t packet = {0};
+
+static nvs_handle_t nvs_mount(void);
+static void nvs_umount(nvs_handle_t handle);
+static void self_test(void);
+
+typedef struct buzzverse_link
+{
+	void (*handler)(void);
+	void (*sender)(void);
+} buzzverse_link_t;
+
+static void handler_unknown(void)
+{}
+
+static void sender_unknown(void)
+{
+    packet.version = (CONFIG_PACKET_VERSION << 4); 			// Reserved 4 bits set to 0
+    packet.id = (CONFIG_CLASS_ID << 4) | CONFIG_DEVICE_ID;
+    packet.dataType = SMS;
+	sprintf((char * restrict)packet.data, "NODE STATUS:0x%x", node.status);
+	lora_send(&packet);
 }
+
+static void sender_bme280(void)
+{
+	nvs_handle_t handle;
+	uint16_t cnt;
+
+    if (ESP_FAIL == bme280_read_temperature(&node.sensor.bme280.temp_raw))
+    {
+    	node.sensor.bme280.comms_err_cnt++;
+    }
+    if (ESP_FAIL == bme280_read_pressure(&node.sensor.bme280.press_raw))
+    {
+    	node.sensor.bme280.comms_err_cnt++;
+    }
+    if (ESP_FAIL == bme280_read_humidity(&node.sensor.bme280.hum_raw))
+    {
+    	node.sensor.bme280.comms_err_cnt++;
+    }
+
+    // Fill the packet with the meta data
+    packet.version = (CONFIG_PACKET_VERSION << 4); 			// Reserved 4 bits set to 0
+    packet.id = (CONFIG_CLASS_ID << 4) | CONFIG_DEVICE_ID;
+    packet.dataType = CONFIG_DATA_TYPE;
+
+    handle = nvs_mount();
+    nvs_get_u8(handle, "msgCount", &packet.msgCount);
+    nvs_get_u8(handle, "msgID", &packet.msgID);
+    nvs_get_u16(handle, "bme280.comms_err_cnt", &cnt);
+
+    ESP_LOGI(TAG, "msgID:%d msgCount:%d", packet.msgID, packet.msgCount);
+
+    if (0xFF == packet.msgCount++)
+    {
+    	packet.msgID++;
+    }
+    nvs_set_u8(handle, "msgID", packet.msgID);
+    nvs_set_u8(handle, "msgCount", packet.msgCount);
+    if (cnt != node.sensor.bme280.comms_err_cnt)
+    {
+    	node.sensor.bme280.comms_err_cnt = cnt;
+    	nvs_set_u16(handle, "msgCount", cnt);
+    }
+    nvs_umount(handle);
+
+    // Convert raw sensor readings
+	packet.data[0] = (int8_t)(node.sensor.bme280.temp_raw * 2);             // Scale temperature for higher precision and fit into int8_t
+	packet.data[1] = (int8_t)((node.sensor.bme280.press_raw / 100) - 1000); // Convert Pa to hPa, subtract 1000
+	packet.data[2] = (uint8_t)node.sensor.bme280.hum_raw;                   // Fit humidity into uint8_t
+
+	// Log the packet data before sending
+	ESP_LOGI(pcTaskGetName(NULL), "Temperature: %.2f C (scaled to %d)", node.sensor.bme280.temp_raw, packet.data[0]);
+	ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa (stored as %d)", node.sensor.bme280.press_raw / 100, packet.data[1]);
+	ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %% (stored as %u)", node.sensor.bme280.hum_raw, packet.data[2]);
+    lora_status_t send_status = lora_send(&packet);
+
+    if (LORA_OK != send_status)
+    {
+        ESP_LOGE(TAG, "Packet send failed");
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Packet sent successfully");
+    }
+}
+
+static void sender_status(void)
+{
+	nvs_handle_t handle;
+
+    packet.version = (CONFIG_PACKET_VERSION << 4); 			// Reserved 4 bits set to 0
+    packet.id = (CONFIG_CLASS_ID << 4) | CONFIG_DEVICE_ID;
+	packet.dataType = STATUS;
+
+    handle = nvs_mount();
+    nvs_get_u8(handle, "msgCount", &packet.msgCount);
+    nvs_get_u8(handle, "msgID", &packet.msgID);
+    if (0xFF == packet.msgCount++)
+    {
+    	packet.msgID++;
+    }
+    nvs_set_u8(handle, "msgID", packet.msgID);
+    nvs_set_u8(handle, "msgCount", packet.msgCount);
+    nvs_umount(handle);
+
+    packet.data[0] = node.status;
+    packet.data[1] = node.batt.cap;
+
+
+	ESP_LOGI(pcTaskGetName(NULL), "Data: %s", packet.data);
+    lora_status_t send_status = lora_send(&packet);
+
+    if (LORA_OK != send_status)
+    {
+        ESP_LOGE(TAG, "Packet send failed");
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Packet sent successfully");
+    }
+}
+
+static void sender_sms(void)
+{
+    // Fill the packet with the meta data
+    packet.version = (CONFIG_PACKET_VERSION << 4); 			// Reserved 4 bits set to 0
+    packet.id = (CONFIG_CLASS_ID << 4) | CONFIG_DEVICE_ID;
+    packet.dataType = CONFIG_DATA_TYPE;
+	packet.dataType = SMS;
+
+    if (node.status)
+    {
+		sprintf((char * restrict)packet.data, "NODE STATUS:0x%x", node.status);
+    }
+    else
+    {
+    	sprintf((char * restrict)packet.data, "System booted-up");
+    }
+	ESP_LOGI(pcTaskGetName(NULL), "Data: %s", packet.data);
+    lora_status_t send_status = lora_send(&packet);
+
+    if (LORA_OK != send_status)
+    {
+        ESP_LOGE(TAG, "Packet send failed");
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Packet sent successfully");
+    }
+}
+
+static buzzverse_link_t buzzverse_link[MAX_DATA_TYPES] =
+{
+		{	&handler_unknown, 	&sender_unknown 	},	// 0 - Reserved
+		{	&handler_unknown,	&sender_bme280		},	// 1 - BME280
+		{	&handler_unknown,	&sender_unknown		},	// 2 - BMA400
+		{	&handler_unknown,	&sender_unknown		},	// 3 - MQ2
+		{	&handler_unknown,	&sender_unknown		},	// 4 - GPS
+		{	&handler_unknown,	&sender_status		},	// 5 - STATUS
+		{	&handler_unknown,	&sender_unknown		},	// 6
+		{	&handler_unknown,	&sender_unknown		},	// 7
+		{	&handler_unknown,	&sender_unknown		},	// 8
+		{	&handler_unknown,	&sender_unknown		},	// 9
+		{	&handler_unknown,	&sender_unknown		},	// 10
+		{	&handler_unknown,	&sender_unknown		},	// 11
+		{	&handler_unknown,	&sender_unknown		},	// 12
+		{	&handler_unknown,	&sender_unknown		},	// 13
+		{	&handler_unknown,	&sender_unknown		},	// 14
+		{	&handler_unknown,	&sender_unknown		},	// 15
+		{	&handler_unknown,	&sender_unknown		},	// 16
+		{	&handler_unknown,	&sender_unknown		},	// 17
+		{	&handler_unknown,	&sender_unknown		},	// 18
+		{	&handler_unknown,	&sender_unknown		},	// 19
+		{	&handler_unknown,	&sender_unknown		},	// 20
+		{	&handler_unknown,	&sender_unknown		},	// 21
+		{	&handler_unknown,	&sender_unknown		},	// 22
+		{	&handler_unknown,	&sender_unknown		},	// 23
+		{	&handler_unknown,	&sender_unknown		},	// 24
+		{	&handler_unknown,	&sender_unknown		},	// 25
+		{	&handler_unknown,	&sender_unknown		},	// 26
+		{	&handler_unknown,	&sender_unknown		},	// 27
+		{	&handler_unknown,	&sender_unknown		},	// 28
+		{	&handler_unknown,	&sender_unknown		},	// 29
+		{	&handler_unknown,	&sender_unknown		},	// 30
+		{	&handler_unknown,	&sender_unknown		},	// 31
+		{	&handler_unknown,	&sender_sms			}	// 32 - SMS
+};
+// LOCAL
+
+
 
 #if CONFIG_LORA_TRANSMITTER
 static void task_tx(void *pvParameters);
-
-static packet_t packet = {0};
 
 static void initialize_sensors(void)
 {
@@ -59,7 +276,7 @@ static void initialize_sensors(void)
     if (ESP_OK != bme_rc)
     {
         ESP_LOGE(TAG, "BME280 initialization failed");
-        bootup_status |= xBOOTUP_NO_BME280;
+        node.status |= xNODE_BME280_FAIL;
     }
 }
 #endif
@@ -102,7 +319,7 @@ void app_main(void)
     {
         ESP_LOGE(TAG, "LoRa initialization failed");
         // not sure if this should restart, but also not sure what else to do here?
-        bootup_status = xBOOTUP_NO_LORA;
+        node.status = xNODE_LORA_FAIL;
         self_test();
     }
 
@@ -121,71 +338,19 @@ void app_main(void)
 }
 
 #if CONFIG_LORA_TRANSMITTER
-static double temp_raw, press_raw, hum_raw;
 
 void task_tx(void *pvParameters)
 {
-	UBaseType_t uxHighWaterMark1, uxHighWaterMark2;
-
-    ESP_LOGI(pcTaskGetName(NULL), "Start TX");
+    ESP_LOGI(TAG, "Started task:%s", pcTaskGetName(NULL));
     vTaskDelay(500 / portTICK_PERIOD_MS);
-    uxHighWaterMark1 = uxTaskGetStackHighWaterMark(NULL);
-    ESP_LOGI(TAG, "TX task WaterMark1:0x%x", uxHighWaterMark1);
 
     while (1)
     {
-        bme280_read_temperature(&temp_raw);
-        bme280_read_pressure(&press_raw);
-        bme280_read_humidity(&hum_raw);
+        buzzverse_link[CONFIG_DATA_TYPE].sender();
 
-        // Fill the packet with the meta data
-        packet.version = (CONFIG_PACKET_VERSION << 4) | 0; // Reserved 4 bits set to 0
-        packet.id = (CONFIG_CLASS_ID << 4) | CONFIG_DEVICE_ID;
-        packet.msgID = 'B';	            // 'B' for Buzz;
-        packet.msgCount = 'V';			// 'V' for Verse
-        packet.dataType = CONFIG_DATA_TYPE;
-
-        //packet.dataType = SMS;
-        if (bootup_status & xBOOTUP_NO_BME280)
+        if (node.status & xNODE_BME280_FAIL)
         {
-        	packet.dataType = SMS;
-			sprintf((char * restrict)packet.data, "BOOTUP:0x%x", bootup_status);
-			// Log the packet data before sending
-			ESP_LOGI(pcTaskGetName(NULL), "Data: %s", packet.data);
-        }
-
-        if (BME280 == packet.dataType)
-        {
-            // Convert raw sensor readings
-            packet.data[0] = (int8_t)(temp_raw * 2);             // Scale temperature for higher precision and fit into int8_t
-            packet.data[1] = (int8_t)((press_raw / 100) - 1000); // Convert Pa to hPa, subtract 1000
-            packet.data[2] = (uint8_t)hum_raw;                   // Fit humidity into uint8_t
-
-            // Log the packet data before sending
-            ESP_LOGI(pcTaskGetName(NULL), "Temperature: %.2f C (scaled to %d)", temp_raw, packet.data[0]);
-            ESP_LOGI(pcTaskGetName(NULL), "Pressure: %.2f hPa (stored as %d)", press_raw / 100, packet.data[1]);
-            ESP_LOGI(pcTaskGetName(NULL), "Humidity: %.2f %% (stored as %u)", hum_raw, packet.data[2]);
-        }
-        else
-        {
-			sprintf((char * restrict)packet.data, "Unsupported type");
-			// Log the packet data before sending
-			ESP_LOGI(pcTaskGetName(NULL), "Data: %s", packet.data);
-        }
-        lora_status_t send_status = lora_send(&packet);
-
-        if (LORA_OK != send_status)
-        {
-            ESP_LOGE(TAG, "Packet send failed");
-        }
-        else
-        {
-            ESP_LOGI(TAG, "Packet sent successfully");
-        }
-        uxHighWaterMark2 = uxTaskGetStackHighWaterMark(NULL);
-        ESP_LOGI(TAG, "TX task WaterMark2:0x%x", uxHighWaterMark2);
-        if (bootup_status)
-        {
+        	buzzverse_link[STATUS].sender();
         	self_test();
         }
         low_power_mode_set_sleep_time(CONFIG_LOW_POWER_MODE_SLEEP_TIME_SEC);
@@ -282,3 +447,60 @@ void task_rx(void *pvParameters)
     }
 }
 #endif
+
+static void self_test(void)
+{
+	ESP_LOGI(TAG, "--SELF TEST BEGIN--");
+	if (node.status & xNODE_BME280_FAIL)
+	{
+		ESP_LOGI(TAG, "--BME280 FAIL");
+		ESP_LOGI(TAG, "--Initializing BME280 driver: %s", ESP_OK == bme280_init_driver(CONFIG_BME280_I2C_ADDRESS)?"OK":"FAILED");
+	}
+	if (node.status & xNODE_LORA_FAIL)
+	{
+		ESP_LOGI(TAG, "--LORA FAIL");
+		ESP_LOGI(TAG, "--Initializing LoRa driver: %s", LORA_OK == lora_init()?"OK":"FAILED");
+	}
+	ESP_LOGI(TAG, "--SELF TEST END--");
+}
+
+static nvs_handle_t nvs_mount(void)
+{
+	nvs_handle_t handle;
+	esp_err_t err = nvs_flash_init();
+
+	if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND)
+	{
+		// NVS partition was truncated and needs to be erased
+		// Retry nvs_flash_init
+		ESP_ERROR_CHECK(nvs_flash_erase());
+		err = nvs_flash_init();
+	}
+	// Open
+	ESP_LOGI(TAG, "Opening Non-Volatile Storage (NVS) handle... ");
+	err = nvs_open("storage", NVS_READWRITE, &handle);
+	if (err != ESP_OK) {
+		ESP_LOGE(TAG, "Error (%s) opening NVS handle!\n", esp_err_to_name(err));
+	    nvs_close(handle);
+	    fflush(stdout);
+	} else {
+		ESP_LOGI(TAG, "Done\n");
+	}
+	return handle;
+}
+
+static void nvs_umount(nvs_handle_t handle)
+{
+	esp_err_t err;
+    // Commit written values.
+    // After setting any values, nvs_commit() must be called to ensure changes are written
+    // to flash storage. Implementations may write to storage at other times,
+    // but this is not guaranteed.
+    ESP_LOGI(TAG, "Committing updates in NVS ... ");
+    err = nvs_commit(handle);
+    ESP_LOGI(TAG, "%s", (err != ESP_OK) ? "Failed!\n" : "Done\n");
+
+    // Close
+    nvs_close(handle);
+    fflush(stdout);
+}
