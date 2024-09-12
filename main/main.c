@@ -33,6 +33,10 @@
 #define xNODE_LOW_BATT		0x08	// Set when low battery detected
 #define xNODE_MQTT_FAIL		0x04	// Set when MQTT fails
 
+#define SYS_QUEUE_SZ	10
+#define SCH_QUEUE_SZ	10
+#define RX_QUEUE_SZ		10
+
 #define SCHEDULE_SZ 3
 #define PERIOD_BME280 1
 #define PERIOD_BASE PERIOD_BME280			// Set a base for period.
@@ -82,7 +86,7 @@ typedef struct sensor
 {
 	bme280_t bme280;
 	bq27441_t bq27441;
-} sensor_t;
+} sensors_t;
 
 // dummy struct
 typedef struct radio
@@ -105,7 +109,7 @@ typedef struct node
 {
 	uint8_t status;  //TBD may need to config of 'node' and status go to system
 	system_t system;
-	sensor_t sensor;
+	sensors_t sensor;
 	radio_t radio;
 } node_t;
 
@@ -133,6 +137,8 @@ typedef enum sch_msg
 	SCH_RADIO_POWER_OFF = 1
 } sch_msg_t;
 
+
+
 /*
  * Local static vars, functions declarations
  */
@@ -152,7 +158,7 @@ static void sys_wr_nvs_from_ram(void);
 static void sys_wr_ram_from_nvs(void);
 
 /* Packet construction functions */
-static void packet_create_header(packet_t *packet, DataType type);
+static void packet_create_header(packet_t *packet, const DataType type);
 
 #if CONFIG_LORA_RECEIVER
 static void task_rx(void *pvParameters);
@@ -221,21 +227,28 @@ static schedule_t schedule[SCHEDULE_SZ] =
 static void handler_unknown(void)
 {}
 
-static void packet_create_header(packet_t *packet, DataType type)
+static void packet_create_header(packet_t *packet, const DataType type)
 {
-    packet->version = (CONFIG_PACKET_VERSION << 4); // Version and 4-bit reserved
-    packet->id = (CONFIG_CLASS_ID << 4) | CONFIG_DEVICE_ID; // This should be unique
-    packet->dataType = type;
+	if (NULL != packet)
+	{
+		packet->version = (CONFIG_PACKET_VERSION << 4); // Version and 4-bit reserved
+		packet->id = (CONFIG_CLASS_ID << 4) | CONFIG_DEVICE_ID; // This should be unique
+		packet->dataType = type;
 
-    /*
-     * TEMPORARY: update msg counter and ID for debug purpose.
-     */
-    packet->msgCount = node.radio.msg_counter++;
-    packet->msgID = node.radio.msg_id;
-    if (!node.radio.msg_counter)
-    {
-    	node.radio.msg_id++;
-    }
+		/*
+		 * TEMPORARY: update msg counter and ID for debug purpose.
+		 */
+		packet->msgCount = node.radio.msg_counter++;
+		packet->msgID = node.radio.msg_id;
+		if (!node.radio.msg_counter)
+		{
+			node.radio.msg_id++;
+		}
+	}
+	else
+	{
+		ESP_LOGE(TAG, "Cannot create packet HEADER - null pointer!");
+	}
 }
 
 static void sender_unknown(void)
@@ -288,6 +301,7 @@ static void sender_bme280(void)
 static void sender_status(void)
 {
     packet_create_header(&packet, STATUS);
+
     packet.data[0] = node.status;
     packet.data[1] = (uint8_t)(node.sensor.bq27441.voltage >> 8);
     packet.data[2] = (uint8_t)(node.sensor.bq27441.voltage & 0x00FF);
@@ -312,11 +326,10 @@ static void sender_sms(void)
 
     packet_create_header(&packet, SMS);
 
-	sprintf((char *restrict)packet.data, "FW:%s B:%d[mV] S:%d",
+	snprintf((char *restrict)packet.data, DATA_SIZE, "FW:%s B:%d[mV] S:%d",
 			esp_app_desc->version,
 			node.sensor.bq27441.voltage,
-			node.system.sleep_time
-			);
+			node.system.sleep_time);
 
 	ESP_LOGI(pcTaskGetName(NULL), "Data: %s", packet.data);
     lora_status_t send_status = lora_send(&packet);
@@ -546,6 +559,12 @@ static nvs_handle_t sys_mount_nvs(const char *namespace)
 	nvs_handle_t handle;
 	esp_err_t err = nvs_flash_init();
 
+	if (NULL == namespace)
+	{
+		ESP_LOGE(TAG, "Invalid namespace NULL");
+		return 0;
+	}
+
 	if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND)
 	{
 		// NVS partition was truncated and needs to be erased
@@ -619,7 +638,7 @@ void app_main(void)
 {
     ESP_LOGI(TAG, "Initializing LoRa");
 
-    node.system.queue = xQueueCreate(10, sizeof(sys_msg_t));
+    node.system.queue = xQueueCreate(SYS_QUEUE_SZ, sizeof(sys_msg_t));
     if (NULL != node.system.queue)
     {
     	xTaskCreate(&task_system, "SYSTEM", 1024 * 4, NULL, 5, NULL);
@@ -630,7 +649,7 @@ void app_main(void)
     }
 #if CONFIG_LORA_TRANSMITTER
 
-    node.radio.queue_sch = xQueueCreate(10, sizeof(sch_msg_t));
+    node.radio.queue_sch = xQueueCreate(SCH_QUEUE_SZ, sizeof(sch_msg_t));
     if (NULL != node.radio.queue_sch)
     {
     	xTaskCreate(&task_radio_scheduler, "RADIO_SCH", 1024 * 4, NULL, 5, NULL);
@@ -648,7 +667,7 @@ void app_main(void)
     xTaskCreate(&task_rx, "MQTT", 1024 * 4, NULL, 5, NULL);
 #endif
 
-    node.radio.queue_rx = xQueueCreate(10, sizeof(uint8_t *));
+    node.radio.queue_rx = xQueueCreate(RX_QUEUE_SZ, sizeof(uint8_t *));
     xTaskCreate(&task_rx, "RADIO_RX", 1024 * 4, NULL, 5, NULL);
 #endif
 }
