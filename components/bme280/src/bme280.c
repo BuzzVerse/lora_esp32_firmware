@@ -28,7 +28,7 @@ esp_err_t i2c_master_init(void)
         .scl_io_num = CONFIG_I2C_MASTER_SCL_IO, // GPIO pin for SCL (clock line)
         .sda_pullup_en = GPIO_PULLUP_ENABLE,    // Enable SDA pull-up resistor
         .scl_pullup_en = GPIO_PULLUP_ENABLE,    // Enable SCL pull-up resistor
-        .master.clk_speed = 1000000             // Clock speed (1 MHz)
+        .master.clk_speed = 400000              // Clock speed (1 MHz)
     };
 
     gpio_set_direction(CONFIG_I2C_MASTER_ENABLED, GPIO_MODE_OUTPUT);

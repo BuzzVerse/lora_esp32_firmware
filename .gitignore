@@ -21,6 +21,12 @@ _deps
 ### VisualStudioCode ###
 .vscode/*
 
+### Eclipse ###
+*.cproject
+*.project
+.settings/language.settings.xml
+
+
 ### DEVCONTAINER ###
 .devcontainer/*
 
@@ -46,3 +52,7 @@ docs/html/**
 
 logs
 snyk-macos
+
+### personal configs ###
+./config.h
+./personal_config.h
