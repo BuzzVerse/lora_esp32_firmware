@@ -1,20 +1,13 @@
-#include <stdio.h>
+#include "bme280.h"
+#include "bme280_lib.h"
+#include "i2c.h"
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "driver/i2c.h"
-#include "bme280_lib.h"
-#include "bme280.h"
-#include "esp_err.h"
-#include "esp_log.h"
-#include "driver/gpio.h"
-#include "driver/i2c.h"
-
-#define I2C_MASTER_ACK 0
-#define I2C_MASTER_NACK 1
 
 #define TAG_BME280 "BME280"
 
-struct bme280_t bme280;
+static struct bme280_t bme280;
 
 // Function to initialize I2C
 esp_err_t i2c_master_init(void)
@@ -140,21 +133,11 @@ void delay_ms(uint32_t ticks)
 
 esp_err_t bme280_init_driver(uint8_t dev_addr)
 {
-    // Initialize the BME280 driver structure with I2C functions and the given address
     bme280.dev_addr = dev_addr;
     bme280.delay_msec = delay_ms;
     bme280.bus_write = i2c_write;
     bme280.bus_read = i2c_read;
 
-    // Initialize the I2C bus
-    if(SUCCESS != i2c_master_init()){
-        ESP_LOGE(TAG_BME280, "BME280 init failed.");
-        return ESP_FAIL;
-    }
-
-    // Initialize the BME280 driver using BOSCH library
-
-    // Check if the initialization was successful
     if (SUCCESS != bme280_init(&bme280))
     {
         ESP_LOGE(TAG_BME280, "BME280 init failed.");
@@ -169,12 +152,10 @@ esp_err_t bme280_set_oversamp(bme280_oversampling_t oversamp_pressure, bme280_ov
 {
     s32 com_rslt;
 
-    // Set the oversampling
     com_rslt = bme280_set_oversamp_pressure(oversamp_pressure);
     com_rslt += bme280_set_oversamp_temperature(oversamp_temperature);
     com_rslt += bme280_set_oversamp_humidity(oversamp_humidity);
 
-    // Check if the oversampling was set correctly
     if (com_rslt == SUCCESS)
     {
         ESP_LOGI(TAG_BME280, "BME280 set oversamp success");
@@ -189,18 +170,14 @@ esp_err_t bme280_set_oversamp(bme280_oversampling_t oversamp_pressure, bme280_ov
 
 esp_err_t bme280_set_settings(bme280_standby_time_t standby_time, bme280_filter_coeff_t filter_coeff, bme280_power_mode_t power_mode)
 {
-    // Result of communication results
     s32 com_rslt;
 
-    // Set the settings
     com_rslt = bme280_set_standby_durn(standby_time);
     com_rslt += bme280_set_filter(filter_coeff);
     com_rslt += bme280_set_power_mode(power_mode);
 
-    // Check if the settings were set correctly
     if (com_rslt == SUCCESS)
     {
-
         ESP_LOGI(TAG_BME280, "BME280 set settings success");
         return ESP_OK;
     }
@@ -214,17 +191,12 @@ esp_err_t bme280_set_settings(bme280_standby_time_t standby_time, bme280_filter_
 esp_err_t bme280_read_pressure(double *pressure)
 {
     s32 com_rslt;
-
-    // Uncompenstated pressure value
     s32 v_uncomp_pressure_s32;
 
-    // Read the uncompensated pressure value
     com_rslt = bme280_read_uncomp_pressure(&v_uncomp_pressure_s32);
 
-    // Check if the read was successful
     if (com_rslt == SUCCESS)
     {
-        // Compensate the pressure value and write it to the pointer
         *pressure = bme280_compensate_pressure_double(v_uncomp_pressure_s32);
         return ESP_OK;
     }
@@ -238,17 +210,12 @@ esp_err_t bme280_read_pressure(double *pressure)
 esp_err_t bme280_read_temperature(double *temperature)
 {
     s32 com_rslt;
-
-    // Uncompenstated temperature value
     s32 v_uncomp_temperature_s32;
 
-    // Read the uncompensated temperature value
     com_rslt = bme280_read_uncomp_temperature(&v_uncomp_temperature_s32);
 
-    // Check if the read was successful
     if (com_rslt == SUCCESS)
     {
-        // Compensate the temperature value and write it to the pointer
         *temperature = bme280_compensate_temperature_double(v_uncomp_temperature_s32);
         return ESP_OK;
     }
@@ -262,17 +229,12 @@ esp_err_t bme280_read_temperature(double *temperature)
 esp_err_t bme280_read_humidity(double *humidity)
 {
     s32 com_rslt;
-
-    // Uncompenstated humidity value
     s32 v_uncomp_humidity_s32;
 
-    // Read the uncompensated humidity value
     com_rslt = bme280_read_uncomp_humidity(&v_uncomp_humidity_s32);
 
-    // Check if the read was successful
     if (com_rslt == SUCCESS)
     {
-        // Compensate the humidity value and write it to the pointer
         *humidity = bme280_compensate_humidity_double(v_uncomp_humidity_s32);
         return ESP_OK;
     }
