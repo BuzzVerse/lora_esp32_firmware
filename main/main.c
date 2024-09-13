@@ -16,7 +16,7 @@
 #include "nvs_flash.h"
 #include "nvs.h"
 #include "esp_app_desc.h"
-
+static void task_system(void *pvParameters);
 /*
  * Definitions, consts
  */
@@ -363,7 +363,7 @@ static void initialize_mqtt(void)
 }
 #endif
 
-#if CONFIG_LORA_TRANSMITTER
+
 
 static void initialize_sensors(void)
 {
@@ -382,21 +382,18 @@ static void initialize_sensors(void)
 		node.status |= xNODE_BME280_FAIL;
 	}
 }
-#endif
-
-#if CONFIG_LORA_TRANSMITTER
 
 /*
  * System task responsible for handling system wide events.
  */
-void task_system(void *pvParameters)
+static void task_system(void *pvParameters)
 {
 	ESP_LOGI(TAG, "Started task:%s", pcTaskGetName(NULL));
 
 	sys_msg_t sys_msg;
 	node.system.sleep_time = CONFIG_LOW_POWER_MODE_SLEEP_TIME_SEC;
 	sys_wr_ram_from_nvs();
-    initialize_sensors();
+    //initialize_sensors();
 
     while (1)
 	{
@@ -417,6 +414,9 @@ void task_system(void *pvParameters)
 		}
 	}
 }
+
+#if CONFIG_LORA_TRANSMITTER
+
 
 void task_radio_scheduler(void *pvParameters)
 {
@@ -499,16 +499,12 @@ void task_rx(void *pvParameters)
             ESP_LOGI(pcTaskGetName(NULL), "Received Pressure: %.2f hPa", received_press);
             ESP_LOGI(pcTaskGetName(NULL), "Received Humidity: %.2f %%", received_hum);
 
-            if (LORA_OK == status)
-            {
-                snprintf(msg, sizeof(msg), "{\"BME280\":{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}}",
-                         received_temp, received_press, received_hum);
-            }
-            else
+            if (LORA_OK != status)
             {
                 ESP_LOGE(TAG, "Message CRC error!");
-                snprintf(msg, sizeof(msg), "{\"temperature\":-1, \"pressure\":-1, \"humidity\":-1}");
             }
+		snprintf(msg, sizeof(msg), "{\"BME280\":{\"temperature\":%.2f, \"pressure\":%.2f, \"humidity\":%.2f}}",
+				received_temp, received_press, received_hum);
         }
         else if (SMS == packet.dataType)
         {
@@ -638,6 +634,7 @@ void app_main(void)
 {
     ESP_LOGI(TAG, "Initializing LoRa");
 
+
     node.system.queue = xQueueCreate(SYS_QUEUE_SZ, sizeof(sys_msg_t));
     if (NULL != node.system.queue)
     {
@@ -647,6 +644,7 @@ void app_main(void)
     {
     	ESP_LOGE(TAG, "SYSTEM task not created!");
     }
+
 #if CONFIG_LORA_TRANSMITTER
 
     node.radio.queue_sch = xQueueCreate(SCH_QUEUE_SZ, sizeof(sch_msg_t));
@@ -659,12 +657,11 @@ void app_main(void)
     	ESP_LOGE(TAG, "RADIO_SCH task not craeted!");
     }
 #endif
-
+    lora_init();
 #if CONFIG_LORA_RECEIVER
 
 #if CONFIG_ENABLE_MQTT
     initialize_mqtt();
-    xTaskCreate(&task_rx, "MQTT", 1024 * 4, NULL, 5, NULL);
 #endif
 
     node.radio.queue_rx = xQueueCreate(RX_QUEUE_SZ, sizeof(uint8_t *));
