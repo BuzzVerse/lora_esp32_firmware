@@ -8,7 +8,7 @@
 #define TAG_BME280 "BME280"
 
 static struct bme280_t bme280;
-
+#if 0
 // Function to initialize I2C
 esp_err_t i2c_master_init(void)
 {
@@ -124,7 +124,7 @@ esp_err_t i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_
         return ESP_FAIL;
     }
 }
-
+#endif
 // Function to provide millisecond delay
 void delay_ms(uint32_t ticks)
 {

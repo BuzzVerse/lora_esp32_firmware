@@ -39,65 +39,7 @@
 #define SCH_QUEUE_SZ	10
 #define RX_QUEUE_SZ		10
 
-static void initialize_sensors(void)
-{
-    esp_err_t bme_rc = ESP_OK;
- 
-    i2c_init();
 
-    bme_rc = bme280_init_driver(CONFIG_BME280_I2C_ADDRESS);
-    if (ESP_OK != bme_rc)
-    {
-        ESP_LOGE(TAG, "BME280 initialization failed");
-        // not sure if this should restart, but also not sure what else to do here?
-    }
-	bme_rc = bme280_set_oversamp(BME280_OVERSAMP_16X, BME280_OVERSAMP_16X, BME280_OVERSAMP_16X);
-    bme_rc += bme280_set_settings(STANDBY_10MS, BME280_FILTER_COEFF_16, BME280_NORMAL_MODE);
-    if (ESP_OK != bme_rc)
-    {
-    	ESP_LOGI(TAG, "Failed to set BME280 oversampling/settings!")
-    }
-
-    esp_err_t bq_rc = bq27441_init();
-    if (bq_rc != ESP_OK)
-    {
-        ESP_LOGE(TAG, "Failed to initialize BQ27441");
-        return;
-    }
-
-    uint16_t capacity;
-	bq_rc = bq27441_read_design_capacity(&capacity);
-	if (bq_rc == ESP_OK)
-	{
-		ESP_LOGI(TAG, "Design Capacity: %d mAh", capacity);
-	}
-	else
-	{
-		ESP_LOGE(TAG, "Failed to read design capacity");
-	}
-
-	uint8_t soc;
-	bq_rc = bq27441_read_soc(&soc);
-	if (bq_rc == ESP_OK)
-	{
-		ESP_LOGI(TAG, "State of Charge: %d %%", soc);
-	}
-	else
-	{
-		ESP_LOGE(TAG, "Failed to read state of charge");
-	}
-
-	uint16_t voltage;
-	bq_rc = bq27441_read_voltage(&voltage);
-	if (bq_rc == ESP_OK)
-	{
-		ESP_LOGI(TAG, "Voltage: %d mV", voltage);
-	}
-	else
-	{
-		ESP_LOGE(TAG, "Failed to read voltage");
-	}
-}
 
 #define SCHEDULE_SZ 3
 #define PERIOD_BME280 1
@@ -196,7 +138,9 @@ typedef enum sys_msg
 typedef enum sch_msg
 {
 	SCH_START = 0,
-	SCH_RADIO_POWER_OFF = 1
+	SCH_BME280_RDY = 1,
+	SCH_BQ_RDY = 2,
+	SCH_RADIO_POWER_OFF = 3
 } sch_msg_t;
 
 
@@ -324,18 +268,7 @@ static void sender_unknown(void)
 
 static void sender_bme280(void)
 {
-    if (ESP_FAIL == bme280_read_temperature(&node.sensor.bme280.temp_raw))
-    {
-    	node.sensor.bme280.comms_err_cnt++;
-    }
-    if (ESP_FAIL == bme280_read_pressure(&node.sensor.bme280.press_raw))
-    {
-    	node.sensor.bme280.comms_err_cnt++;
-    }
-    if (ESP_FAIL == bme280_read_humidity(&node.sensor.bme280.hum_raw))
-    {
-    	node.sensor.bme280.comms_err_cnt++;
-    }
+
 
     packet_create_header(&packet, BME280);
 
@@ -426,12 +359,25 @@ static void initialize_mqtt(void)
     esp_mqtt_client_start(mqtt_client);
 }
 #endif
-
-
-
 static void initialize_sensors(void)
 {
     esp_err_t bme_rc = ESP_OK;
+
+    i2c_init();
+#if 0
+    bme_rc = bme280_init_driver(CONFIG_BME280_I2C_ADDRESS);
+    if (ESP_OK != bme_rc)
+    {
+        ESP_LOGE(TAG, "BME280 initialization failed");
+        // not sure if this should restart, but also not sure what else to do here?
+    }
+	bme_rc = bme280_set_oversamp(BME280_OVERSAMP_16X, BME280_OVERSAMP_16X, BME280_OVERSAMP_16X);
+    bme_rc += bme280_set_settings(STANDBY_10MS, BME280_FILTER_COEFF_16, BME280_NORMAL_MODE);
+    if (ESP_OK != bme_rc)
+    {
+    	ESP_LOGI(TAG, "Failed to set BME280 oversampling/settings!");
+    }
+#else
 
 	bme_rc = bme280_init_driver(CONFIG_BME280_I2C_ADDRESS);
 	if (ESP_OK == bme_rc) {
@@ -445,6 +391,46 @@ static void initialize_sensors(void)
 		ESP_LOGE(TAG, "BME280 initialization failed");
 		node.status |= xNODE_BME280_FAIL;
 	}
+#endif
+    esp_err_t bq_rc = bq27441_init();
+    if (bq_rc != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Failed to initialize BQ27441");
+        return;
+    }
+
+    uint16_t capacity;
+	bq_rc = bq27441_read_design_capacity(&capacity);
+	if (bq_rc == ESP_OK)
+	{
+		ESP_LOGI(TAG, "Design Capacity: %d mAh", capacity);
+	}
+	else
+	{
+		ESP_LOGE(TAG, "Failed to read design capacity");
+	}
+
+	uint8_t soc;
+	bq_rc = bq27441_read_soc(&soc);
+	if (bq_rc == ESP_OK)
+	{
+		ESP_LOGI(TAG, "State of Charge: %d %%", soc);
+	}
+	else
+	{
+		ESP_LOGE(TAG, "Failed to read state of charge");
+	}
+
+	uint16_t voltage;
+	bq_rc = bq27441_read_voltage(&voltage);
+	if (bq_rc == ESP_OK)
+	{
+		ESP_LOGI(TAG, "Voltage: %d mV", voltage);
+	}
+	else
+	{
+		ESP_LOGE(TAG, "Failed to read voltage");
+	}
 }
 
 /*
@@ -455,10 +441,25 @@ static void task_system(void *pvParameters)
 	ESP_LOGI(TAG, "Started task:%s", pcTaskGetName(NULL));
 
 	sys_msg_t sys_msg;
+	sch_msg_t sch_msg;
 	node.system.sleep_time = CONFIG_LOW_POWER_MODE_SLEEP_TIME_SEC;
 	sys_wr_ram_from_nvs();
-    //initialize_sensors();
+    initialize_sensors();
 
+    while (1)
+    {
+		uint16_t voltage;
+		esp_err_t bq_rc = bq27441_read_voltage(&voltage);
+		if (bq_rc == ESP_OK)
+		{
+			ESP_LOGI(TAG, "Voltage: %d mV", voltage);
+		}
+		else
+		{
+			ESP_LOGE(TAG, "Failed to read voltage");
+		}
+    }
+#if 0
     while (1)
 	{
 		xQueueReceive(node.system.queue, &sys_msg, portMAX_DELAY);
@@ -473,10 +474,39 @@ static void task_system(void *pvParameters)
 			case SYS_LORA_FAIL:
 		        node.status |= xNODE_LORA_FAIL;
 				break;
+			case SYS_BQ_RD:
+				esp_err_t bq_rc = bq27411_read_voltage(&node.sensors.bq27441.voltage);
+				if (ESP_OK != bq_rc)
+				{
+					ESP_LOGE(TAG, "Could not read from bq27411!");
+				}
+				else
+				{
+				    sch_msg = SCH_BQ27441_RDY;
+				    if (pdTRUE != xQueueSend(node.radio.queue_sch,(const void *) &sch_msg, 0))
+				    {
+				    	ESP_LOGE(TAG, "Could not send SCH_BQ27441_RDY to queue");
+				    }
+				}
+			case SYS_BME280_RD:
+			    if (ESP_FAIL == bme280_read_temperature(&node.sensor.bme280.temp_raw) ||
+			    	ESP_FAIL == bme280_read_pressure(&node.sensor.bme280.press_raw) ||
+					ESP_FAIL == bme280_read_humidity(&node.sensor.bme280.hum_raw))
+			    {
+			    	ESP_LOGE(TAG, "BME280 read temp/press/hum fail!");
+			    	node.sensor.bme280.comms_err_cnt++;
+			    }
+			    sch_msg = SCH_BME280_RDY;
+			    if (pdTRUE != xQueueSend(node.radio.queue_sch,(const void *) &sch_msg, 0))
+			    {
+			    	ESP_LOGE(TAG, "Could not send SCH_BME280_RDY to queue");
+			    }
+
 			default:
 				break;
 		}
 	}
+#endif
 }
 
 #if CONFIG_LORA_TRANSMITTER
@@ -519,6 +549,10 @@ void task_radio_scheduler(void *pvParameters)
 				}
 				sys_msg_t sys_msg = SYS_RUN_LOWPWR_MODE;
 				xQueueSend(node.system.queue, (void *)&sys_msg, SYS_CLOCK_1SEC);
+				break;
+			case SCH_BQ27441_RDY:
+				break;
+			case SCH_BME280_RDY:
 				break;
 			default:
 				ESP_LOGE(TAG, "Unknown sch_msg:%d", sch_msg);
