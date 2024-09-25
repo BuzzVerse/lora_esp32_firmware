@@ -6,6 +6,8 @@
  * @brief Definitions for the BQ27441 fuel gauge.
  */
 
+#define BQ27441_DATA_SIZE 3 * sizeof(uint16_t) /**< Size of the buffer to hold capacity, SoC, and voltage data*/
+
 /**
  * @brief Sensor interface functions for BQ27441.
  */

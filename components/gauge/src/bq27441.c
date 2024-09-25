@@ -76,7 +76,7 @@ esp_err_t bq27441_set_design_capacity(sensor_context_t *ctx, uint16_t capacity)
 {
     if (NULL == ctx || NULL == ctx->driver_data)
     {
-        ESP_LOGE(TAG, "Invalid context or driver data");
+        ESP_LOGE(TAG, "Invalid context or capacity");
         return ESP_ERR_INVALID_ARG;
     }
 
@@ -123,6 +123,7 @@ esp_err_t bq27441_read_design_capacity(sensor_context_t *ctx, uint16_t *capacity
 {
     if (NULL == ctx || NULL == ctx->driver_data || NULL == capacity)
     {
+        ESP_LOGE(TAG, "Invalid context or capacity pointer");
         return ESP_ERR_INVALID_ARG;
     }
 
@@ -142,6 +143,7 @@ esp_err_t bq27441_read_soc(sensor_context_t *ctx, uint8_t *soc)
 {
     if (NULL == ctx || NULL == ctx->driver_data || NULL == soc)
     {
+        ESP_LOGE(TAG, "Invalid context or SoC pointer");
         return ESP_ERR_INVALID_ARG;
     }
 
@@ -162,6 +164,7 @@ esp_err_t bq27441_read_voltage(sensor_context_t *ctx, uint16_t *voltage)
 {
     if (NULL == ctx || NULL == ctx->driver_data || NULL == voltage)
     {
+        ESP_LOGE(TAG, "Invalid context or voltage pointer");
         return ESP_ERR_INVALID_ARG;
     }
 
@@ -179,6 +182,12 @@ esp_err_t bq27441_read_voltage(sensor_context_t *ctx, uint16_t *voltage)
 
 static esp_err_t bq27441_unseal(const bq27441_config_t *config)
 {
+    if (NULL == config)
+    {
+        ESP_LOGE(TAG, "Configuration data is NULL");
+        return ESP_ERR_INVALID_ARG;
+    }
+
     uint8_t unseal_key[2] = {BQ27441_UNSEAL_KEY0, BQ27441_UNSEAL_KEY1}; // Use defined unseal keys
     esp_err_t err;
 
@@ -202,6 +211,12 @@ static esp_err_t bq27441_unseal(const bq27441_config_t *config)
 
 static esp_err_t bq27441_toggle_config_mode(const bq27441_config_t *config, bool enter)
 {
+    if (NULL == config)
+    {
+        ESP_LOGE(TAG, "Configuration data is NULL");
+        return ESP_ERR_INVALID_ARG;
+    }
+
     uint8_t cmd[2];
     if (enter)
     {
@@ -219,6 +234,18 @@ static esp_err_t bq27441_toggle_config_mode(const bq27441_config_t *config, bool
 
 static esp_err_t bq27441_write_extended_data(const bq27441_config_t *config, uint8_t classID, uint8_t offset, uint8_t *data, uint8_t len)
 {
+    if (NULL == data || 0 == len)
+    {
+        ESP_LOGE(TAG, "Data buffer is NULL or empty");
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    if (NULL == config)
+    {
+        ESP_LOGE(TAG, "Configuration data is NULL");
+        return ESP_ERR_INVALID_ARG;
+    }
+
     esp_err_t err;
 
     // Block data control
@@ -293,9 +320,15 @@ esp_err_t bq27441_sensor_init(void *context)
 
 esp_err_t bq27441_sensor_read(void *context, uint8_t *data, size_t length)
 {
-    if (3 * sizeof(uint16_t) > length)
+    if (NULL == data)
     {
-        return ESP_FAIL; // Insufficient buffer size
+        ESP_LOGE(TAG, "Data buffer is NULL");
+        return ESP_ERR_INVALID_ARG; // Invalid data buffer
+    }
+
+    if (BQ27441_DATA_SIZE > length)
+    {
+        return ESP_ERR_INVALID_ARG; // Insufficient buffer size
     }
 
     sensor_context_t *ctx = (sensor_context_t *)context;

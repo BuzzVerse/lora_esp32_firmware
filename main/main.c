@@ -66,7 +66,7 @@ static void initialize_sensors(void)
 
 static void read_bq27441_data(void)
 {
-    uint8_t bq27441_data[3 * sizeof(uint16_t)];
+    uint8_t bq27441_data[BQ27441_DATA_SIZE];
     if (sensor_read(&bq_sensor_context, bq27441_data, sizeof(bq27441_data)) == 0)
     {
         uint16_t capacity;
@@ -114,7 +114,7 @@ void app_main(void)
 
     configure_bq27441();
     configure_bme280();
-    
+
     initialize_sensors();
 
     // Initial data read
