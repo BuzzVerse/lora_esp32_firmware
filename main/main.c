@@ -89,7 +89,7 @@ static void read_bq27441_data(void)
 
 static void read_bme280_data(void)
 {
-    uint8_t bme280_data[3 * sizeof(double)]; // Buffer to hold temperature, pressure, and humidity
+    uint8_t bme280_data[BME280_DATA_SIZE]; // Buffer to hold temperature, pressure, and humidity
 
     if (sensor_read(&bme280_sensor_context, bme280_data, sizeof(bme280_data)) == 0)
     {

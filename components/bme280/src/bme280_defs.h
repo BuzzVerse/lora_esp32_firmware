@@ -11,8 +11,10 @@
  * @brief This file contains definitions for the BME280 driver.
  */
 
+#define BME280_DATA_SIZE 3 * sizeof(double) /**< Size of the buffer to hold temperature, pressure, and humidity data*/
+
 /**
- * @brief Configuration structure for BQ27441.
+ * @brief Configuration structure for BME280.
  */
 typedef struct
 {

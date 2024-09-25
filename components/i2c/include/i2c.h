@@ -25,7 +25,7 @@ esp_err_t i2c_init(void);
  *    - ESP_OK on success.
  *    - An error code on failure.
  */
-esp_err_t i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t data_len);
+esp_err_t i2c_write(const uint8_t dev_addr, const uint8_t reg_addr, const uint8_t *data, const size_t data_len);
 
 /**
  * @brief Read data from an I2C device.
@@ -39,6 +39,6 @@ esp_err_t i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t da
  *    - ESP_OK on success.
  *    - An error code on failure.
  */
-esp_err_t i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t data_len);
+esp_err_t i2c_read(const uint8_t dev_addr, const uint8_t reg_addr, uint8_t *data, const size_t data_len);
 
 #endif // _I2C_H_
