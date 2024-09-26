@@ -249,7 +249,7 @@ size_t get_packet_size(DataType type)
     case GPS:
         return 16; // 8B longitude, 8B latitude
     case STATUS:
-        return 1;  // 1B battery percentage
+    	return 5;  // 1B status, 2B voltage, 2B
     case SMS:
         return 59; // Max 59B String
     default:

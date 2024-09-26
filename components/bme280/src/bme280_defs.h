@@ -22,6 +22,17 @@ typedef struct
 } bme280_config_t;
 
 /**
+ * @brief Data structure for BME280.
+ */
+typedef struct bme280_data
+{
+    double temp_raw;        // Temperature in degrees Celsius
+    double press_raw;       // Pressure in hPa
+    double hum_raw;         // Humidity in %
+    uint16_t comms_err_cnt; // Communication error counter
+} bme280_data_t;
+
+/**
  * @brief Oversampling values for the BME280 sensor.
  *
  * @details Oversampling is used to reduce noise in the output data. Higher oversampling values result in less noise.

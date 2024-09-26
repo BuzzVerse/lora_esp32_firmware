@@ -18,6 +18,7 @@ typedef struct
 {
     const sensor_interface_t *interface;
     void *driver_data; // Pointer to sensor-specific data, e.g., I2C address, configuration, etc.
+    void *sensor_data; // Pointer to sensor-specific data, e.g., calibration data, etc.
 } sensor_context_t;
 
 // Function to initialize the sensor
