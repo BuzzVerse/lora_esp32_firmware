@@ -3,9 +3,25 @@
 
 /**
  * @file bq27441_defs.h
- * @author Bykowski Olaf
  * @brief Definitions for the BQ27441 fuel gauge.
  */
+
+#define BQ27441_DATA_SIZE 3 * sizeof(uint16_t) /**< Size of the buffer to hold capacity, SoC, and voltage data*/
+
+/**
+ * @brief Sensor interface functions for BQ27441.
+ */
+extern sensor_interface_t bq27441_interface;
+
+/**
+ * @brief Configuration structure for BQ27441.
+ */
+typedef struct
+{
+    uint8_t i2c_address;
+    uint16_t design_capacity;   // in mAh
+    uint16_t terminate_voltage; // in mV
+} bq27441_config_t;
 
 /**
  * @brief 7-bit I2C address of the BQ27441 fuel gauge.

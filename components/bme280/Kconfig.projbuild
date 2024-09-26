@@ -1,22 +1,4 @@
 menu "BME280 configuration"
-    config I2C_MASTER_SCL_IO 
-        int "Master SCL pin"
-        default 7
-        help
-            Pin the master SCL line is connected to
-    
-    config I2C_MASTER_SDA_IO
-        int "Master SDA pin"
-        default 6
-        help
-            Pin the master SDA line is connected to
-    
-    config I2C_MASTER_ENABLED
-        int "I2C master enabled"
-        default 6
-        help
-            Pin the master enabled line is connected to
-
     config BME280_I2C_ADDRESS
         hex "I2C address"
         default (0x76)
