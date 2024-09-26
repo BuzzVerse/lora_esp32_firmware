@@ -14,7 +14,7 @@ void bme280_delay_msec(u32 ms)
     vTaskDelay(ms / portTICK_PERIOD_MS);
 }
 
-s8 bme280_i2c_write(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 len)
+int8_t bme280_i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t len)
 {
     if (NULL == reg_data || 0 == len)
     {
@@ -25,7 +25,7 @@ s8 bme280_i2c_write(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 len)
     return (ESP_OK == err) ? 0 : -1; // Return 0 on success, -1 on error
 }
 
-s8 bme280_i2c_read(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 len)
+int8_t bme280_i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t len)
 {
     if (NULL == reg_data || 0 == len)
     {
@@ -103,7 +103,7 @@ esp_err_t bme280_read_pressure(double *pressure)
         return ESP_ERR_INVALID_ARG;
     }
 
-    s32 uncomp_pressure;
+    signed int uncomp_pressure;
 
     if (SUCCESS == bme280_read_uncomp_pressure(&uncomp_pressure))
     {
@@ -125,7 +125,7 @@ esp_err_t bme280_read_temperature(double *temperature)
         return ESP_ERR_INVALID_ARG;
     }
 
-    s32 uncomp_temperature;
+    signed int uncomp_temperature;
 
     if (SUCCESS == bme280_read_uncomp_temperature(&uncomp_temperature))
     {
@@ -147,7 +147,7 @@ esp_err_t bme280_read_humidity(double *humidity)
         return ESP_ERR_INVALID_ARG;
     }
 
-    s32 uncomp_humidity;
+    signed int uncomp_humidity;
 
     if (SUCCESS == bme280_read_uncomp_humidity(&uncomp_humidity))
     {
