@@ -24,6 +24,11 @@ typedef struct
 // Function to initialize the sensor
 static inline esp_err_t sensor_init(sensor_context_t *ctx, const sensor_interface_t *interface, void *driver_data)
 {
+    if (NULL == ctx || NULL == interface)
+    {
+        return ESP_ERR_INVALID_ARG;
+    }
+
     ctx->interface = interface;
     ctx->driver_data = driver_data;
     return ctx->interface->init(ctx);
@@ -32,12 +37,22 @@ static inline esp_err_t sensor_init(sensor_context_t *ctx, const sensor_interfac
 // Function to read data from the sensor
 static inline esp_err_t sensor_read(sensor_context_t *ctx, uint8_t *data, size_t length)
 {
+    if (NULL == ctx || NULL == data)
+    {
+        return ESP_ERR_INVALID_ARG;
+    }
+
     return ctx->interface->read(ctx, data, length);
 }
 
 // Function to write data to the sensor
 static inline esp_err_t sensor_write(sensor_context_t *ctx, const uint8_t *data, size_t length)
 {
+    if (NULL == ctx || NULL == data)
+    {
+        return ESP_ERR_INVALID_ARG;
+    }
+
     return ctx->interface->write(ctx, data, length);
 }
 

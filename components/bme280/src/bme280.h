@@ -5,8 +5,8 @@
 #include "esp_err.h"
 #include "sensor.h"
 
-extern sensor_interface_t bme280_interface; // Extern declaration
-extern struct bme280_t bme280; // Extern declaration
+extern sensor_interface_t bme280_interface;
+extern struct bme280_t bme280;
 
 /**
  * @brief Function to initialize the BME280 sensor.

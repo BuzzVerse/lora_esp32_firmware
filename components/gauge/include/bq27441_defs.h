@@ -24,6 +24,26 @@ typedef struct
 } bq27441_config_t;
 
 /**
+ * @brief Word length for the BQ27441 fuel gauge.
+ */
+#define BQ27441_WORD_LENGTH 2
+
+/**
+ * @brief Data size of 1.
+ */
+#define BQ27441_DATA_SIZE_1 1
+
+/**
+ * @brief Data size of 2.
+ */
+#define BQ27441_DATA_SIZE_2 2
+
+/**
+ * @brief Block data size.
+ */
+#define BQ27441_BLOCK_DATA_SIZE 32
+
+/**
  * @brief 7-bit I2C address of the BQ27441 fuel gauge.
  */
 #define BQ27441_ADDR CONFIG_BQ27441_I2C_ADDRESS

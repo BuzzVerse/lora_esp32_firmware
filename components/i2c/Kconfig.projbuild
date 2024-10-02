@@ -16,4 +16,10 @@ menu "I2C configuration"
         default 6
         help
             Pin the master enabled line is connected to
+
+    config I2C_MASTER_FREQ_HZ
+        int "I2C master frequency"
+        default 100000
+        help
+            I2C master clock frequency in Hz
 endmenu
