@@ -105,135 +105,89 @@ $(document).ready(function(){initNavTree('bme280_8h_source.html',''); initResiza
 <div class="title">bme280.h</div>  </div>
 </div><!--header-->
 <div class="contents">
-<a href="bme280_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef BME280_H</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#define BME280_H</span></div>
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef _BME280_H_</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#define _BME280_H_</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160; </div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="bme280__defs_8h.html">bme280_defs.h</a>&quot;</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;esp_err.h&quot;</span></div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="comment">/**</span></div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="comment"> * @file bme280.h</span></div>
-<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="comment"> * @authors Bykowski Olaf, Rafał Majewski</span></div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="comment"> * @brief This file contains declarations for the BME280 driver.</span></div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="comment">/**</span></div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="comment"> * @brief Function to initialize the BME280 sensor.</span></div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="comment"> * @param dev_addr I2C address of the BME280 sensor. Takes a hex value.</span></div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="comment"> * @details This function initializes the I2C bus with values from config and initializes the BME280 sensor.</span></div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;<span class="comment"> * @returns ESP_OK if successful, ESP_FAIL if unsuccessful</span></div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &quot;sensor.h&quot;</span></div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160; </div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="keyword">extern</span> <a class="code" href="structsensor__interface__t.html">sensor_interface_t</a> bme280_interface;</div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="keyword">extern</span> <span class="keyword">struct </span><a class="code" href="structbme280.html">bme280_t</a> <a class="code" href="structbme280.html">bme280</a>;</div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="comment">/**</span></div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="comment"> * @brief Function to initialize the BME280 sensor.</span></div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="comment"> * @param sensor_config Pointer to the sensor configuration structure.</span></div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="comment"> * @returns ESP_OK if successful, ESP_FAIL if unsuccessful</span></div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;esp_err_t bme280_init_driver(<a class="code" href="structsensor__context__t.html">sensor_context_t</a> *sensor_config);</div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="comment">/**</span></div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;<span class="comment"> * @brief Function to set oversampling settings.</span></div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;esp_err_t <a class="code" href="bme280_8h.html#ac81cddb8d708f2cc25ad6bb27a5d510d">bme280_init_driver</a>(uint8_t dev_addr);</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="comment">/**</span></div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="comment"> * @brief Function to set oversampling settings</span></div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="comment"> * @param oversamp_pressure Pressure oversampling setting</span></div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="comment"> * @param oversamp_temperature Temperature oversampling setting</span></div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="comment"> * @param oversamp_humidity Humidity oversampling setting</span></div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;<span class="comment"> * @details This function sets the oversampling settings for the BME280 sensor.</span></div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="comment"> * @note The oversampling settings are as follows:</span></div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;<span class="comment"> * @note 0 - one measurement</span></div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;<span class="comment"> * @note 1 - oversampling x1</span></div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;<span class="comment"> * @note 2 - oversampling x2</span></div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="comment"> * @note 3 - oversampling x4</span></div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="comment"> * @note 4 - oversampling x8</span></div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="comment"> * @note 5 - oversampling x16</span></div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="comment"> * @param oversamp_pressure Pressure oversampling setting.</span></div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="comment"> * @param oversamp_temperature Temperature oversampling setting.</span></div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="comment"> * @param oversamp_humidity Humidity oversampling setting.</span></div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="comment"> * @returns ESP_OK if successful, ESP_FAIL if unsuccessful.</span></div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;esp_err_t bme280_set_oversamp(<a class="code" href="bme280__defs_8h.html#ae53a30a575e76255ecfa9a4f1170b6e3">bme280_oversampling_t</a> oversamp_pressure, <a class="code" href="bme280__defs_8h.html#ae53a30a575e76255ecfa9a4f1170b6e3">bme280_oversampling_t</a> oversamp_temperature, <a class="code" href="bme280__defs_8h.html#ae53a30a575e76255ecfa9a4f1170b6e3">bme280_oversampling_t</a> oversamp_humidity);</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="comment">/**</span></div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="comment"> * @brief Function to set standby time, filter coefficient, and power mode.</span></div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="comment"> * @param standby_time Standby time setting.</span></div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;<span class="comment"> * @param filter_coeff Filter coefficient setting.</span></div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="comment"> * @param power_mode Power mode setting.</span></div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;<span class="comment"> * @returns ESP_OK if successful, ESP_FAIL if unsuccessful.</span></div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;esp_err_t bme280_set_settings(<a class="code" href="bme280__defs_8h.html#a7238fa36ccbff4310fc526d4edd33f2a">bme280_standby_time_t</a> standby_time, <a class="code" href="bme280__defs_8h.html#a943e8d3bfac98af24704ac04bd6bf9ac">bme280_filter_coeff_t</a> filter_coeff, <a class="code" href="bme280__defs_8h.html#ae8f7481c79cbd944592296ae7e266d7a">bme280_power_mode_t</a> power_mode);</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="comment">/**</span></div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="comment"> * @brief Function to read pressure.</span></div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="comment"> * @returns ESP_OK if successful, ESP_FAIL if unsuccessful</span></div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;esp_err_t <a class="code" href="bme280_8h.html#a3f88a69bd3443cdb493cc91870e47bdd">bme280_set_oversamp</a>(<a class="code" href="bme280__defs_8h.html#ae53a30a575e76255ecfa9a4f1170b6e3">bme280_oversampling_t</a> oversamp_pressure, <a class="code" href="bme280__defs_8h.html#ae53a30a575e76255ecfa9a4f1170b6e3">bme280_oversampling_t</a> oversamp_temperature, <a class="code" href="bme280__defs_8h.html#ae53a30a575e76255ecfa9a4f1170b6e3">bme280_oversampling_t</a> oversamp_humidity);</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="comment">/**</span></div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="comment"> * @brief Function to set standby time, filter coefficient and power mode</span></div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="comment"> * @note The settings are as follows:</span></div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;<span class="comment"> * @param standby_time Standby time setting</span></div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="comment"> * @note Standby time:</span></div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="comment"> * @note 0 - 1 ms</span></div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="comment"> * @note 1 - 63 ms</span></div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;<span class="comment"> * @note 2 - 125 ms</span></div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="comment"> * @note 3 - 250 ms</span></div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;<span class="comment"> * @note 4 - 500 ms</span></div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;<span class="comment"> * @note 5 - 1000 ms</span></div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="comment"> * @note 6 - 10 ms</span></div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;<span class="comment"> * @note 7 - 20 ms</span></div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;<span class="comment"> * @param filter_coeff Filter coefficient setting</span></div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="comment"> * @note Filter coefficient:</span></div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;<span class="comment"> * @note 0 - filter off</span></div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;<span class="comment"> * @note 1 - coefficient 2</span></div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;<span class="comment"> * @note 2 - coefficient 4</span></div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;<span class="comment"> * @note 3 - coefficient 8</span></div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;<span class="comment"> * @note 4 - coefficient 16</span></div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;<span class="comment"> * @param power_mode Power mode setting</span></div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;<span class="comment"> * @note Power mode:</span></div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;<span class="comment"> * @note 0 - sleep mode</span></div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;<span class="comment"> * @note 1 - forced mode</span></div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;<span class="comment"> * @note 2 - normal mode</span></div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;<span class="comment"> * @details This function sets the standby time, filter coefficient and power mode for the BME280 sensor.</span></div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;<span class="comment"> * @returns ESP_OK if successful, ESP_FAIL if unsuccessful</span></div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;esp_err_t <a class="code" href="bme280_8h.html#a84964e38db134fbe605517cbffcbf869">bme280_set_settings</a>(<a class="code" href="bme280__defs_8h.html#a7238fa36ccbff4310fc526d4edd33f2a">bme280_standby_time_t</a> standby_time, <a class="code" href="bme280__defs_8h.html#a943e8d3bfac98af24704ac04bd6bf9ac">bme280_filter_coeff_t</a> filter_coeff, <a class="code" href="bme280__defs_8h.html#ae8f7481c79cbd944592296ae7e266d7a">bme280_power_mode_t</a> power_mode);</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;<span class="comment">/**</span></div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;<span class="comment"> * @brief Function to read pressure</span></div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;<span class="comment"> * @param pressure Pointer to the variable where the pressure will be stored</span></div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;<span class="comment"> * @returns ESP_OK if successful, ESP_FAIL if unsuccessful</span></div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;esp_err_t <a class="code" href="bme280_8h.html#aaea4eae2912b7823095860d93a61bdd0">bme280_read_pressure</a>(<span class="keywordtype">double</span> *pressure);</div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;<span class="comment">/**</span></div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;<span class="comment"> * @brief Function to read temperature</span></div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;<span class="comment"> * @param temperature Pointer to the variable where the temperature will be stored</span></div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;<span class="comment"> * @returns ESP_OK if successful, ESP_FAIL if unsuccessful</span></div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;esp_err_t <a class="code" href="bme280_8h.html#a981b94b8ce23ef6830235b9a9ac7be14">bme280_read_temperature</a>(<span class="keywordtype">double</span> *temperature);</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;<span class="comment"></span> </div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;<span class="comment">/**</span></div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;<span class="comment"> * @brief Function to read humidity</span></div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;<span class="comment"> * @param humidity Pointer to the variable where the humidity will be stored</span></div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;<span class="comment"> *</span></div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;<span class="comment"> * @returns ESP_OK if successful, ESP_FAIL if unsuccessful</span></div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;<span class="comment"> */</span></div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;esp_err_t <a class="code" href="bme280_8h.html#ace594590ce86975af24cd11095e0aae8">bme280_read_humidity</a>(<span class="keywordtype">double</span> *humidity);</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160; </div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;<span class="preprocessor">#endif </span><span class="comment">// BME280_H</span></div>
-<div class="ttc" id="abme280_8h_html_a3f88a69bd3443cdb493cc91870e47bdd"><div class="ttname"><a href="bme280_8h.html#a3f88a69bd3443cdb493cc91870e47bdd">bme280_set_oversamp</a></div><div class="ttdeci">esp_err_t bme280_set_oversamp(bme280_oversampling_t oversamp_pressure, bme280_oversampling_t oversamp_temperature, bme280_oversampling_t oversamp_humidity)</div><div class="ttdoc">Function to set oversampling settings.</div><div class="ttdef"><b>Definition:</b> bme280.c:169</div></div>
-<div class="ttc" id="abme280_8h_html_a84964e38db134fbe605517cbffcbf869"><div class="ttname"><a href="bme280_8h.html#a84964e38db134fbe605517cbffcbf869">bme280_set_settings</a></div><div class="ttdeci">esp_err_t bme280_set_settings(bme280_standby_time_t standby_time, bme280_filter_coeff_t filter_coeff, bme280_power_mode_t power_mode)</div><div class="ttdoc">Function to set standby time, filter coefficient and power mode.</div><div class="ttdef"><b>Definition:</b> bme280.c:191</div></div>
-<div class="ttc" id="abme280_8h_html_a981b94b8ce23ef6830235b9a9ac7be14"><div class="ttname"><a href="bme280_8h.html#a981b94b8ce23ef6830235b9a9ac7be14">bme280_read_temperature</a></div><div class="ttdeci">esp_err_t bme280_read_temperature(double *temperature)</div><div class="ttdoc">Function to read temperature.</div><div class="ttdef"><b>Definition:</b> bme280.c:239</div></div>
-<div class="ttc" id="abme280_8h_html_aaea4eae2912b7823095860d93a61bdd0"><div class="ttname"><a href="bme280_8h.html#aaea4eae2912b7823095860d93a61bdd0">bme280_read_pressure</a></div><div class="ttdeci">esp_err_t bme280_read_pressure(double *pressure)</div><div class="ttdoc">Function to read pressure.</div><div class="ttdef"><b>Definition:</b> bme280.c:215</div></div>
-<div class="ttc" id="abme280_8h_html_ac81cddb8d708f2cc25ad6bb27a5d510d"><div class="ttname"><a href="bme280_8h.html#ac81cddb8d708f2cc25ad6bb27a5d510d">bme280_init_driver</a></div><div class="ttdeci">esp_err_t bme280_init_driver(uint8_t dev_addr)</div><div class="ttdoc">Function to initialize the BME280 sensor.</div><div class="ttdef"><b>Definition:</b> bme280.c:138</div></div>
-<div class="ttc" id="abme280_8h_html_ace594590ce86975af24cd11095e0aae8"><div class="ttname"><a href="bme280_8h.html#ace594590ce86975af24cd11095e0aae8">bme280_read_humidity</a></div><div class="ttdeci">esp_err_t bme280_read_humidity(double *humidity)</div><div class="ttdoc">Function to read humidity.</div><div class="ttdef"><b>Definition:</b> bme280.c:263</div></div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="comment"> * @param pressure Pointer to the variable where the pressure will be stored.</span></div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="comment"> * @returns ESP_OK if successful, ESP_FAIL if unsuccessful.</span></div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;esp_err_t bme280_read_pressure(<span class="keywordtype">double</span> *pressure);</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="comment">/**</span></div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="comment"> * @brief Function to read temperature.</span></div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="comment"> * @param temperature Pointer to the variable where the temperature will be stored.</span></div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="comment"> * @returns ESP_OK if successful, ESP_FAIL if unsuccessful.</span></div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;esp_err_t bme280_read_temperature(<span class="keywordtype">double</span> *temperature);</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;<span class="comment"></span> </div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;<span class="comment">/**</span></div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="comment"> * @brief Function to read humidity.</span></div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;<span class="comment"> * @param humidity Pointer to the variable where the humidity will be stored.</span></div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="comment"> * @returns ESP_OK if successful, ESP_FAIL if unsuccessful.</span></div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;<span class="comment"> */</span></div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;esp_err_t bme280_read_humidity(<span class="keywordtype">double</span> *humidity);</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160; </div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;<span class="preprocessor">#endif </span><span class="comment">// _BME280_H_</span></div>
 <div class="ttc" id="abme280__defs_8h_html"><div class="ttname"><a href="bme280__defs_8h.html">bme280_defs.h</a></div><div class="ttdoc">This file contains definitions for the BME280 driver.</div></div>
-<div class="ttc" id="abme280__defs_8h_html_a7238fa36ccbff4310fc526d4edd33f2a"><div class="ttname"><a href="bme280__defs_8h.html#a7238fa36ccbff4310fc526d4edd33f2a">bme280_standby_time_t</a></div><div class="ttdeci">bme280_standby_time_t</div><div class="ttdoc">Standby time values for the BME280 sensor.</div><div class="ttdef"><b>Definition:</b> bme280_defs.h:38</div></div>
-<div class="ttc" id="abme280__defs_8h_html_a943e8d3bfac98af24704ac04bd6bf9ac"><div class="ttname"><a href="bme280__defs_8h.html#a943e8d3bfac98af24704ac04bd6bf9ac">bme280_filter_coeff_t</a></div><div class="ttdeci">bme280_filter_coeff_t</div><div class="ttdoc">Filter coefficient values for the BME280 sensor.</div><div class="ttdef"><b>Definition:</b> bme280_defs.h:57</div></div>
-<div class="ttc" id="abme280__defs_8h_html_ae53a30a575e76255ecfa9a4f1170b6e3"><div class="ttname"><a href="bme280__defs_8h.html#ae53a30a575e76255ecfa9a4f1170b6e3">bme280_oversampling_t</a></div><div class="ttdeci">bme280_oversampling_t</div><div class="ttdoc">Oversampling values for the BME280 sensor.</div><div class="ttdef"><b>Definition:</b> bme280_defs.h:21</div></div>
-<div class="ttc" id="abme280__defs_8h_html_ae8f7481c79cbd944592296ae7e266d7a"><div class="ttname"><a href="bme280__defs_8h.html#ae8f7481c79cbd944592296ae7e266d7a">bme280_power_mode_t</a></div><div class="ttdeci">bme280_power_mode_t</div><div class="ttdoc">Power mode values for the BME280 sensor.</div><div class="ttdef"><b>Definition:</b> bme280_defs.h:73</div></div>
+<div class="ttc" id="abme280__defs_8h_html_a7238fa36ccbff4310fc526d4edd33f2a"><div class="ttname"><a href="bme280__defs_8h.html#a7238fa36ccbff4310fc526d4edd33f2a">bme280_standby_time_t</a></div><div class="ttdeci">bme280_standby_time_t</div><div class="ttdoc">Standby time values for the BME280 sensor.</div><div class="ttdef"><b>Definition:</b> bme280_defs.h:60</div></div>
+<div class="ttc" id="abme280__defs_8h_html_a943e8d3bfac98af24704ac04bd6bf9ac"><div class="ttname"><a href="bme280__defs_8h.html#a943e8d3bfac98af24704ac04bd6bf9ac">bme280_filter_coeff_t</a></div><div class="ttdeci">bme280_filter_coeff_t</div><div class="ttdoc">Filter coefficient values for the BME280 sensor.</div><div class="ttdef"><b>Definition:</b> bme280_defs.h:79</div></div>
+<div class="ttc" id="abme280__defs_8h_html_ae53a30a575e76255ecfa9a4f1170b6e3"><div class="ttname"><a href="bme280__defs_8h.html#ae53a30a575e76255ecfa9a4f1170b6e3">bme280_oversampling_t</a></div><div class="ttdeci">bme280_oversampling_t</div><div class="ttdoc">Oversampling values for the BME280 sensor.</div><div class="ttdef"><b>Definition:</b> bme280_defs.h:43</div></div>
+<div class="ttc" id="abme280__defs_8h_html_ae8f7481c79cbd944592296ae7e266d7a"><div class="ttname"><a href="bme280__defs_8h.html#ae8f7481c79cbd944592296ae7e266d7a">bme280_power_mode_t</a></div><div class="ttdeci">bme280_power_mode_t</div><div class="ttdoc">Power mode values for the BME280 sensor.</div><div class="ttdef"><b>Definition:</b> bme280_defs.h:95</div></div>
+<div class="ttc" id="astructbme280_html"><div class="ttname"><a href="structbme280.html">bme280</a></div><div class="ttdef"><b>Definition:</b> main.c:86</div></div>
+<div class="ttc" id="astructsensor__context__t_html"><div class="ttname"><a href="structsensor__context__t.html">sensor_context_t</a></div><div class="ttdef"><b>Definition:</b> sensor.h:18</div></div>
+<div class="ttc" id="astructsensor__interface__t_html"><div class="ttname"><a href="structsensor__interface__t.html">sensor_interface_t</a></div><div class="ttdef"><b>Definition:</b> sensor.h:10</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_409f97388efe006bc3438b95e9edef48.html">components</a></li><li class="navelem"><a class="el" href="dir_7c2ae02b4628d724bc976eeb5b904d7c.html">bme280</a></li><li class="navelem"><a class="el" href="dir_efc8855bb4a93664788e1f65974091b3.html">src</a></li><li class="navelem"><a class="el" href="bme280_8h.html">bme280.h</a></li>
+    <li class="navelem"><a class="el" href="dir_409f97388efe006bc3438b95e9edef48.html">components</a></li><li class="navelem"><a class="el" href="dir_7c2ae02b4628d724bc976eeb5b904d7c.html">bme280</a></li><li class="navelem"><a class="el" href="dir_efc8855bb4a93664788e1f65974091b3.html">src</a></li><li class="navelem"><b>bme280.h</b></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1 </li>
   </ul>
 </div>

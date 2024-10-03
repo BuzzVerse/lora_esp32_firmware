@@ -110,7 +110,8 @@ $(document).ready(function(){initNavTree('low__power__mode_8h.html',''); initRes
 
 <p>This file contains declarations for the Low Power Mode driver.  
 <a href="#details">More...</a></p>
-
+<div class="textblock"><code>#include &lt;stdint.h&gt;</code><br />
+</div>
 <p><a href="low__power__mode_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
@@ -118,9 +119,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a33de8933bdd3524b5a93ca01984a7d06"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="low__power__mode_8h.html#a33de8933bdd3524b5a93ca01984a7d06">low_power_mode_enter_deep_sleep</a> (void)</td></tr>
 <tr class="memdesc:a33de8933bdd3524b5a93ca01984a7d06"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function for making the device enter into the low power mode.  <a href="low__power__mode_8h.html#a33de8933bdd3524b5a93ca01984a7d06">More...</a><br /></td></tr>
 <tr class="separator:a33de8933bdd3524b5a93ca01984a7d06"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a588ec8e4089e5d055b78dd20b85d1585"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="low__power__mode_8h.html#a588ec8e4089e5d055b78dd20b85d1585">low_power_mode_set_sleep_time</a> (int sleep_time_sec)</td></tr>
-<tr class="memdesc:a588ec8e4089e5d055b78dd20b85d1585"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function for setting the sleep time for the low power mode.  <a href="low__power__mode_8h.html#a588ec8e4089e5d055b78dd20b85d1585">More...</a><br /></td></tr>
-<tr class="separator:a588ec8e4089e5d055b78dd20b85d1585"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2909f45d0fab7b342b18c758eb27912"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="low__power__mode_8h.html#ab2909f45d0fab7b342b18c758eb27912">low_power_mode_set_sleep_time</a> (uint32_t sleep_time_sec)</td></tr>
+<tr class="memdesc:ab2909f45d0fab7b342b18c758eb27912"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function for setting the sleep time for the low power mode.  <a href="low__power__mode_8h.html#ab2909f45d0fab7b342b18c758eb27912">More...</a><br /></td></tr>
+<tr class="separator:ab2909f45d0fab7b342b18c758eb27912"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This file contains declarations for the Low Power Mode driver. </p>
@@ -143,13 +144,13 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Function for making the device enter into the low power mode. </p>
-<p>This function makes the device enter into the low power mode. Before entering into the low power mode, make sure to set the sleep time using the <a class="el" href="low__power__mode_8h.html#a588ec8e4089e5d055b78dd20b85d1585">low_power_mode_set_sleep_time</a> function.</p>
+<p>This function makes the device enter into the low power mode. Before entering into the low power mode, make sure to set the sleep time using the <a class="el" href="low__power__mode_8h.html#ab2909f45d0fab7b342b18c758eb27912">low_power_mode_set_sleep_time</a> function.</p>
 <dl class="section warning"><dt>Warning</dt><dd>All data in the RAM will be lost when the device enters into the low power mode. </dd></dl>
 
 </div>
 </div>
-<a id="a588ec8e4089e5d055b78dd20b85d1585"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a588ec8e4089e5d055b78dd20b85d1585">&#9670;&nbsp;</a></span>low_power_mode_set_sleep_time()</h2>
+<a id="ab2909f45d0fab7b342b18c758eb27912"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab2909f45d0fab7b342b18c758eb27912">&#9670;&nbsp;</a></span>low_power_mode_set_sleep_time()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -157,7 +158,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">void low_power_mode_set_sleep_time </td>
           <td>(</td>
-          <td class="paramtype">int&#160;</td>
+          <td class="paramtype">uint32_t&#160;</td>
           <td class="paramname"><em>sleep_time_sec</em></td><td>)</td>
           <td></td>
         </tr>

@@ -102,6 +102,9 @@ $(document).ready(function(){initNavTree('bme280__defs_8h.html',''); initResizab
 
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Data Structures</a> &#124;
+<a href="#define-members">Macros</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#enum-members">Enumerations</a>  </div>
   <div class="headertitle">
 <div class="title">bme280_defs.h File Reference</div>  </div>
@@ -111,9 +114,31 @@ $(document).ready(function(){initNavTree('bme280__defs_8h.html',''); initResizab
 <p>This file contains definitions for the BME280 driver.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;bme280_lib.h&quot;</code><br />
+<code>#include &lt;stdint.h&gt;</code><br />
 </div>
 <p><a href="bme280__defs_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Data Structures</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbme280__config__t.html">bme280_config_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configuration structure for BME280.  <a href="structbme280__config__t.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structbme280__data.html">bme280_data</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Data structure for BME280.  <a href="structbme280__data.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:ad5269dcec080bacf5919a8e75687a2d7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bme280__defs_8h.html#ad5269dcec080bacf5919a8e75687a2d7">BME280_DATA_SIZE</a>&#160;&#160;&#160;3 * sizeof(double)</td></tr>
+<tr class="separator:ad5269dcec080bacf5919a8e75687a2d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:ae5b2126b47b2c1c59ea8fe0212c093ec"><td class="memItemLeft" align="right" valign="top"><a id="ae5b2126b47b2c1c59ea8fe0212c093ec"></a>
+typedef struct <a class="el" href="structbme280__data.html">bme280_data</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bme280__defs_8h.html#ae5b2126b47b2c1c59ea8fe0212c093ec">bme280_data_t</a></td></tr>
+<tr class="memdesc:ae5b2126b47b2c1c59ea8fe0212c093ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Data structure for BME280. <br /></td></tr>
+<tr class="separator:ae5b2126b47b2c1c59ea8fe0212c093ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
 <tr class="memitem:ae53a30a575e76255ecfa9a4f1170b6e3"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="bme280__defs_8h.html#ae53a30a575e76255ecfa9a4f1170b6e3">bme280_oversampling_t</a> { <br />
@@ -163,7 +188,23 @@ Enumerations</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This file contains definitions for the BME280 driver. </p>
 <dl class="section author"><dt>Authors</dt><dd>Olaf Bykowski, Rafał Majewski </dd></dl>
-</div><h2 class="groupheader">Enumeration Type Documentation</h2>
+</div><h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="ad5269dcec080bacf5919a8e75687a2d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad5269dcec080bacf5919a8e75687a2d7">&#9670;&nbsp;</a></span>BME280_DATA_SIZE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define BME280_DATA_SIZE&#160;&#160;&#160;3 * sizeof(double)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Size of the buffer to hold temperature, pressure, and humidity data </p>
+
+</div>
+</div>
+<h2 class="groupheader">Enumeration Type Documentation</h2>
 <a id="a943e8d3bfac98af24704ac04bd6bf9ac"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a943e8d3bfac98af24704ac04bd6bf9ac">&#9670;&nbsp;</a></span>bme280_filter_coeff_t</h2>
 

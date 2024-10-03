@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['low_5fpower_5fmode_2eh_19',['low_power_mode.h',['../low__power__mode_8h.html',1,'']]],
-  ['low_5fpower_5fmode_5fenter_5fdeep_5fsleep_20',['low_power_mode_enter_deep_sleep',['../low__power__mode_8h.html#a33de8933bdd3524b5a93ca01984a7d06',1,'low_power_mode.c']]],
-  ['low_5fpower_5fmode_5fset_5fsleep_5ftime_21',['low_power_mode_set_sleep_time',['../low__power__mode_8h.html#a588ec8e4089e5d055b78dd20b85d1585',1,'low_power_mode.c']]]
+  ['data_49',['data',['../structpacket__t.html#abfc877162a4f97dad1f6c6fb8eb784a5',1,'packet_t']]],
+  ['datatype_50',['dataType',['../structpacket__t.html#a8a693089af4d45bb1d6f47dd20fc2051',1,'packet_t']]]
 ];

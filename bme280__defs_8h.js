@@ -1,5 +1,9 @@
 var bme280__defs_8h =
 [
+    [ "bme280_config_t", "structbme280__config__t.html", "structbme280__config__t" ],
+    [ "bme280_data", "structbme280__data.html", "structbme280__data" ],
+    [ "BME280_DATA_SIZE", "bme280__defs_8h.html#ad5269dcec080bacf5919a8e75687a2d7", null ],
+    [ "bme280_data_t", "bme280__defs_8h.html#ae5b2126b47b2c1c59ea8fe0212c093ec", null ],
     [ "bme280_filter_coeff_t", "bme280__defs_8h.html#a943e8d3bfac98af24704ac04bd6bf9ac", [
       [ "FILTER_OFF", "bme280__defs_8h.html#a943e8d3bfac98af24704ac04bd6bf9acab1577adfe34e9a7249c80578493a2a85", null ],
       [ "FILTER_2", "bme280__defs_8h.html#a943e8d3bfac98af24704ac04bd6bf9aca831837fa256056db0dbf8daada2cd4c4", null ],

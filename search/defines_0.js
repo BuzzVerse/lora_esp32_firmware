@@ -1,0 +1,27 @@
+var searchData=
+[
+  ['bme280_5fdata_5fsize_222',['BME280_DATA_SIZE',['../bme280__defs_8h.html#ad5269dcec080bacf5919a8e75687a2d7',1,'bme280_defs.h']]],
+  ['bq27441_5faddr_223',['BQ27441_ADDR',['../bq27441__defs_8h.html#a7740376d6f41d62d80f7251501cda5b9',1,'bq27441_defs.h']]],
+  ['bq27441_5fblock_5fdata_5fsize_224',['BQ27441_BLOCK_DATA_SIZE',['../bq27441__defs_8h.html#adac4ba8c90e4e6af87d941600d48c70b',1,'bq27441_defs.h']]],
+  ['bq27441_5fcmd_5fcontrol_225',['BQ27441_CMD_CONTROL',['../bq27441__defs_8h.html#a0c797992bd75afd1795b7ca6758d364a',1,'bq27441_defs.h']]],
+  ['bq27441_5fcmd_5fexit_5fcfgupdate_226',['BQ27441_CMD_EXIT_CFGUPDATE',['../bq27441__defs_8h.html#a03b5b219a477cd3b374590cc47e12908',1,'bq27441_defs.h']]],
+  ['bq27441_5fcmd_5fread_5fdesign_5fcapacity_227',['BQ27441_CMD_READ_DESIGN_CAPACITY',['../bq27441__defs_8h.html#a77eaf72fadeb60ab950ec71ff19ac698',1,'bq27441_defs.h']]],
+  ['bq27441_5fcmd_5fread_5fflags_228',['BQ27441_CMD_READ_FLAGS',['../bq27441__defs_8h.html#a29a48af0cc43e06809c72c11b650a3a6',1,'bq27441_defs.h']]],
+  ['bq27441_5fcmd_5fset_5fcfgupdate_229',['BQ27441_CMD_SET_CFGUPDATE',['../bq27441__defs_8h.html#a0ad87535b0d49f02d28499c909725505',1,'bq27441_defs.h']]],
+  ['bq27441_5fcmd_5fsoc_230',['BQ27441_CMD_SOC',['../bq27441__defs_8h.html#a0de0c3a6857b5cfca9bf4e18b90a9764',1,'bq27441_defs.h']]],
+  ['bq27441_5fcmd_5fsoft_5freset_231',['BQ27441_CMD_SOFT_RESET',['../bq27441__defs_8h.html#a095f8bade1b429f7a07dca04c2ef0307',1,'bq27441_defs.h']]],
+  ['bq27441_5fcmd_5fvoltage_232',['BQ27441_CMD_VOLTAGE',['../bq27441__defs_8h.html#a3461b76a8e714dcb48a4a44a491d6380',1,'bq27441_defs.h']]],
+  ['bq27441_5fdata_5fsize_233',['BQ27441_DATA_SIZE',['../bq27441__defs_8h.html#a9d1adab45c0dfd41febe38b237246328',1,'bq27441_defs.h']]],
+  ['bq27441_5fdata_5fsize_5f1_234',['BQ27441_DATA_SIZE_1',['../bq27441__defs_8h.html#a25d06d03a71e21a24428648f241b55f7',1,'bq27441_defs.h']]],
+  ['bq27441_5fdata_5fsize_5f2_235',['BQ27441_DATA_SIZE_2',['../bq27441__defs_8h.html#ac4353b4cd72a2b9bfc20134c5441538d',1,'bq27441_defs.h']]],
+  ['bq27441_5fdesign_5fcapacity_5foffset_236',['BQ27441_DESIGN_CAPACITY_OFFSET',['../bq27441__defs_8h.html#a46a19febc500e8076590134a42637675',1,'bq27441_defs.h']]],
+  ['bq27441_5fid_5fstate_237',['BQ27441_ID_STATE',['../bq27441__defs_8h.html#a3683efe7ce167c05d2f88493db678ca0',1,'bq27441_defs.h']]],
+  ['bq27441_5freg_5fblock_5fdata_238',['BQ27441_REG_BLOCK_DATA',['../bq27441__defs_8h.html#a5e038ec9e066b9de44d0ce0efca64753',1,'bq27441_defs.h']]],
+  ['bq27441_5freg_5fblock_5fdata_5fcontrol_239',['BQ27441_REG_BLOCK_DATA_CONTROL',['../bq27441__defs_8h.html#a324497dc1263fc9167fdc20b76ed7733',1,'bq27441_defs.h']]],
+  ['bq27441_5freg_5fblock_5foffset_240',['BQ27441_REG_BLOCK_OFFSET',['../bq27441__defs_8h.html#a41f169f827072264b9f6fc8c7ffa93bc',1,'bq27441_defs.h']]],
+  ['bq27441_5freg_5fchecksum_241',['BQ27441_REG_CHECKSUM',['../bq27441__defs_8h.html#a89581795dd7abd80bbfc0f1f6d96a94d',1,'bq27441_defs.h']]],
+  ['bq27441_5freg_5fclass_5fid_242',['BQ27441_REG_CLASS_ID',['../bq27441__defs_8h.html#a6461d28b73f885db669636d0e724f3fd',1,'bq27441_defs.h']]],
+  ['bq27441_5fterminate_5fvoltage_5foffset_243',['BQ27441_TERMINATE_VOLTAGE_OFFSET',['../bq27441__defs_8h.html#a873b97b94fd61ac25738871459e889b7',1,'bq27441_defs.h']]],
+  ['bq27441_5funseal_5fkey0_244',['BQ27441_UNSEAL_KEY0',['../bq27441__defs_8h.html#ab6f17b6a3531a4e62812547e462a2ff9',1,'bq27441_defs.h']]],
+  ['bq27441_5fword_5flength_245',['BQ27441_WORD_LENGTH',['../bq27441__defs_8h.html#ae82d0710b17c931d1aa71ac15de3211a',1,'bq27441_defs.h']]]
+];
