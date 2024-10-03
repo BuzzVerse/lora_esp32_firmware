@@ -1,160 +1,66 @@
-#include <stdio.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "driver/i2c.h"
-#include "bme280_lib.h"
 #include "bme280.h"
-#include "esp_err.h"
+#include "bme280_lib.h"
 #include "esp_log.h"
-#include "driver/gpio.h"
-#include "driver/i2c.h"
-
-#define I2C_MASTER_ACK 0
-#define I2C_MASTER_NACK 1
+#include "i2c.h"
+#include <string.h>
 
 #define TAG_BME280 "BME280"
 
-struct bme280_t bme280;
+struct bme280_t bme280; // This is the BME280-specific data
+static bme280_config_t bme280_config;
 
-// Function to initialize I2C
-esp_err_t i2c_master_init(void)
+void bme280_delay_msec(u32 ms)
 {
-    esp_err_t esp_rc;
-
-    // Configuration structure for I2C
-    i2c_config_t i2c_config = {
-        .mode = I2C_MODE_MASTER,                // I2C mode: Master
-        .sda_io_num = CONFIG_I2C_MASTER_SDA_IO, // GPIO pin for SDA (data line)
-        .scl_io_num = CONFIG_I2C_MASTER_SCL_IO, // GPIO pin for SCL (clock line)
-        .sda_pullup_en = GPIO_PULLUP_ENABLE,    // Enable SDA pull-up resistor
-        .scl_pullup_en = GPIO_PULLUP_ENABLE,    // Enable SCL pull-up resistor
-        .master.clk_speed = 400000              // Clock speed (400 kHz)
-    };
-
-    gpio_set_direction(CONFIG_I2C_MASTER_ENABLED, GPIO_MODE_OUTPUT);
-    gpio_set_level(CONFIG_I2C_MASTER_ENABLED, 1);
-
-    // Configure I2C parameters
-    esp_rc = i2c_param_config(I2C_NUM_0, &i2c_config);
-
-    // Install the I2C driver
-    esp_rc += i2c_driver_install(I2C_NUM_0, I2C_MODE_MASTER, 0, 0, 0);
-
-    if (esp_rc == ESP_OK)
-    {
-        ESP_LOGI(TAG_BME280, "I2C init success");
-        return ESP_OK;
-    }
-    else
-    {
-        ESP_LOGE(TAG_BME280, "I2C init failed. code: %d", esp_rc);
-        return ESP_FAIL;
-    }
+    vTaskDelay(ms / portTICK_PERIOD_MS);
 }
 
-esp_err_t i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t cnt)
+int8_t bme280_i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t len)
 {
-    esp_err_t esp_rc;
-
-    // Create I2C command link
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-
-    // Write device address and register address for writing
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (dev_addr << 1) | I2C_MASTER_WRITE, true);
-    i2c_master_write_byte(cmd, reg_addr, true);
-
-    // Write data to the device
-    i2c_master_write(cmd, reg_data, cnt, true);
-
-    // Stop the I2C communication
-    i2c_master_stop(cmd);
-
-    // Execute the I2C command sequence
-    esp_rc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 10 / portTICK_PERIOD_MS);
-
-    // Delete the I2C command link to free up resources
-    i2c_cmd_link_delete(cmd);
-
-    // Check if the write was successful
-    if (esp_rc == ESP_OK)
+    if (NULL == reg_data || 0 == len)
     {
-        return ESP_OK;
+        return -1; // Return -1 on error
     }
-    else
-    {
-        ESP_LOGE(TAG_BME280, "I2C write failed. code: %d", esp_rc);
-        return ESP_FAIL;
-    }
+
+    esp_err_t err = i2c_write(dev_addr, reg_addr, reg_data, len);
+    return (ESP_OK == err) ? 0 : -1; // Return 0 on success, -1 on error
 }
 
-esp_err_t i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t cnt)
+int8_t bme280_i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data, uint8_t len)
 {
-    esp_err_t esp_rc;
-
-    // Create I2C command link
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-
-    // Write device address and register address for reading
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (dev_addr << 1) | I2C_MASTER_WRITE, true);
-    i2c_master_write_byte(cmd, reg_addr, true);
-
-    // Start a new I2C communication for reading
-    i2c_master_start(cmd);
-    i2c_master_write_byte(cmd, (dev_addr << 1) | I2C_MASTER_READ, true);
-
-    // Read data from the device
-    if (cnt > 1)
+    if (NULL == reg_data || 0 == len)
     {
-        i2c_master_read(cmd, reg_data, cnt - 1, I2C_MASTER_ACK);
+        return -1; // Return -1 on error
     }
-    i2c_master_read_byte(cmd, reg_data + cnt - 1, I2C_MASTER_NACK);
 
-    // Stop the I2C communication
-    i2c_master_stop(cmd);
-
-    // Execute the I2C command sequence
-    esp_rc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 10 / portTICK_PERIOD_MS);
-
-    // Delete the I2C command link to free up resources
-    i2c_cmd_link_delete(cmd);
-
-    // Check if the read was successful
-    if (esp_rc == ESP_OK)
-    {
-        return ESP_OK;
-    }
-    else
-    {
-        ESP_LOGE(TAG_BME280, "I2C read failed. code: %d", esp_rc);
-        return ESP_FAIL;
-    }
+    esp_err_t err = i2c_read(dev_addr, reg_addr, reg_data, len);
+    return (ESP_OK == err) ? 0 : -1; // Return 0 on success, -1 on error
 }
 
-// Function to provide millisecond delay
-void delay_ms(uint32_t ticks)
+esp_err_t bme280_init_driver(sensor_context_t *sensor_config)
 {
-    vTaskDelay(ticks / portTICK_PERIOD_MS);
-}
-
-esp_err_t bme280_init_driver(uint8_t dev_addr)
-{
-    // Initialize the BME280 driver structure with I2C functions and the given address
-    bme280.dev_addr = dev_addr;
-    bme280.delay_msec = delay_ms;
-    bme280.bus_write = i2c_write;
-    bme280.bus_read = i2c_read;
-
-    // Initialize the I2C bus
-    if(SUCCESS != i2c_master_init()){
-        ESP_LOGE(TAG_BME280, "BME280 init failed.");
-        return ESP_FAIL;
+    if (NULL == sensor_config)
+    {
+        ESP_LOGE(TAG_BME280, "Sensor config is NULL.");
+        return ESP_ERR_INVALID_ARG;
     }
 
-    // Initialize the BME280 driver using BOSCH library
+    if (NULL == sensor_config->driver_data)
+    {
+        ESP_LOGE(TAG_BME280, "Sensor driver data is NULL.");
+        return ESP_ERR_INVALID_ARG;
+    }
 
-    // Check if the initialization was successful
+    bme280_config = *((bme280_config_t *)sensor_config->driver_data);
+
+    // Cast driver_data to the I2C address correctly
+    bme280.dev_addr = bme280_config.i2c_address;
+    bme280.delay_msec = bme280_delay_msec;
+    bme280.bus_write = bme280_i2c_write;
+    bme280.bus_read = bme280_i2c_read;
+
+    // Print the dev_addr to confirm the address being used
+    ESP_LOGD(TAG_BME280, "BME280 I2C address: 0x%02X", bme280.dev_addr);
+
     if (SUCCESS != bme280_init(&bme280))
     {
         ESP_LOGE(TAG_BME280, "BME280 init failed.");
@@ -165,120 +71,148 @@ esp_err_t bme280_init_driver(uint8_t dev_addr)
     return ESP_OK;
 }
 
-esp_err_t bme280_set_oversamp(bme280_oversampling_t oversamp_pressure, bme280_oversampling_t oversamp_temperature, bme280_oversampling_t oversamp_humidity)
+esp_err_t bme280_set_oversamp(const bme280_oversampling_t oversamp_pressure, const bme280_oversampling_t oversamp_temperature, const bme280_oversampling_t oversamp_humidity)
 {
-    s32 com_rslt;
-
-    // Set the oversampling
-    com_rslt = bme280_set_oversamp_pressure(oversamp_pressure);
-    com_rslt += bme280_set_oversamp_temperature(oversamp_temperature);
-    com_rslt += bme280_set_oversamp_humidity(oversamp_humidity);
-
-    // Check if the oversampling was set correctly
-    if (com_rslt == SUCCESS)
+    if (SUCCESS != bme280_set_oversamp_pressure(oversamp_pressure) ||
+        SUCCESS != bme280_set_oversamp_temperature(oversamp_temperature) ||
+        SUCCESS != bme280_set_oversamp_humidity(oversamp_humidity))
     {
-        ESP_LOGI(TAG_BME280, "BME280 set oversamp success");
-        return ESP_OK;
-    }
-    else
-    {
-        ESP_LOGE(TAG_BME280, "BME280 set oversamp failed. code: %d", com_rslt);
+        ESP_LOGE(TAG_BME280, "BME280 set oversamp failed.");
         return ESP_FAIL;
     }
+    return ESP_OK;
 }
 
-esp_err_t bme280_set_settings(bme280_standby_time_t standby_time, bme280_filter_coeff_t filter_coeff, bme280_power_mode_t power_mode)
+esp_err_t bme280_set_settings(const bme280_standby_time_t standby_time, const bme280_filter_coeff_t filter_coeff, const bme280_power_mode_t power_mode)
 {
-    // Result of communication results
-    s32 com_rslt;
-
-    // Set the settings
-    com_rslt = bme280_set_standby_durn(standby_time);
-    com_rslt += bme280_set_filter(filter_coeff);
-    com_rslt += bme280_set_power_mode(power_mode);
-
-    // Check if the settings were set correctly
-    if (com_rslt == SUCCESS)
+    if (SUCCESS != bme280_set_standby_durn(standby_time) ||
+        SUCCESS != bme280_set_filter(filter_coeff) ||
+        SUCCESS != bme280_set_power_mode(power_mode))
     {
-
-        ESP_LOGI(TAG_BME280, "BME280 set settings success");
-        return ESP_OK;
-    }
-    else
-    {
-        ESP_LOGE(TAG_BME280, "BME280 set settings failed. code: %d", com_rslt);
+        ESP_LOGE(TAG_BME280, "BME280 set settings failed.");
         return ESP_FAIL;
     }
+    return ESP_OK;
 }
 
 esp_err_t bme280_read_pressure(double *pressure)
 {
-    s32 com_rslt;
-
-    // Uncompenstated pressure value
-    s32 v_uncomp_pressure_s32;
-
-    // Read the uncompensated pressure value
-    com_rslt = bme280_read_uncomp_pressure(&v_uncomp_pressure_s32);
-
-    // Check if the read was successful
-    if (com_rslt == SUCCESS)
+    if (NULL == pressure)
     {
-        // Compensate the pressure value and write it to the pointer
-        *pressure = bme280_compensate_pressure_double(v_uncomp_pressure_s32);
+        ESP_LOGE(TAG_BME280, "Pressure pointer is NULL.");
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    signed int uncomp_pressure;
+
+    if (SUCCESS == bme280_read_uncomp_pressure(&uncomp_pressure))
+    {
+        *pressure = bme280_compensate_pressure_double(uncomp_pressure);
         return ESP_OK;
     }
     else
     {
-        ESP_LOGE(TAG_BME280, "BME280 uncomp pressure read failed. code: %d", com_rslt);
+        ESP_LOGE(TAG_BME280, "BME280 uncomp pressure read failed.");
         return ESP_FAIL;
     }
 }
 
 esp_err_t bme280_read_temperature(double *temperature)
 {
-    s32 com_rslt;
-
-    // Uncompenstated temperature value
-    s32 v_uncomp_temperature_s32;
-
-    // Read the uncompensated temperature value
-    com_rslt = bme280_read_uncomp_temperature(&v_uncomp_temperature_s32);
-
-    // Check if the read was successful
-    if (com_rslt == SUCCESS)
+    if (NULL == temperature)
     {
-        // Compensate the temperature value and write it to the pointer
-        *temperature = bme280_compensate_temperature_double(v_uncomp_temperature_s32);
+        ESP_LOGE(TAG_BME280, "Temperature pointer is NULL.");
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    signed int uncomp_temperature;
+
+    if (SUCCESS == bme280_read_uncomp_temperature(&uncomp_temperature))
+    {
+        *temperature = bme280_compensate_temperature_double(uncomp_temperature);
         return ESP_OK;
     }
     else
     {
-        ESP_LOGE(TAG_BME280, "BME280 uncomp temperature read failed. code: %d", com_rslt);
+        ESP_LOGE(TAG_BME280, "BME280 uncomp temperature read failed.");
         return ESP_FAIL;
     }
 }
 
 esp_err_t bme280_read_humidity(double *humidity)
 {
-    s32 com_rslt;
-
-    // Uncompenstated humidity value
-    s32 v_uncomp_humidity_s32;
-
-    // Read the uncompensated humidity value
-    com_rslt = bme280_read_uncomp_humidity(&v_uncomp_humidity_s32);
-
-    // Check if the read was successful
-    if (com_rslt == SUCCESS)
+    if (NULL == humidity)
     {
-        // Compensate the humidity value and write it to the pointer
-        *humidity = bme280_compensate_humidity_double(v_uncomp_humidity_s32);
+        ESP_LOGE(TAG_BME280, "Humidity pointer is NULL.");
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    signed int uncomp_humidity;
+
+    if (SUCCESS == bme280_read_uncomp_humidity(&uncomp_humidity))
+    {
+        *humidity = bme280_compensate_humidity_double(uncomp_humidity);
         return ESP_OK;
     }
     else
     {
-        ESP_LOGE(TAG_BME280, "BME280 uncomp humidity read failed. code: %d", com_rslt);
+        ESP_LOGE(TAG_BME280, "BME280 uncomp humidity read failed.");
         return ESP_FAIL;
     }
 }
+
+// Implement the sensor interface functions
+esp_err_t bme280_sensor_init(void *context)
+{
+    if (NULL == context)
+    {
+        ESP_LOGE(TAG_BME280, "Sensor context is NULL.");
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    sensor_context_t *ctx = (sensor_context_t *)context;
+    return bme280_init_driver(ctx);
+}
+
+int bme280_sensor_read(void *context, uint8_t *data, const size_t length)
+{
+    if (NULL == data)
+    {
+        ESP_LOGE(TAG_BME280, "Data buffer is NULL.");
+        return ESP_FAIL;
+    }
+
+    if (BME280_DATA_SIZE > length)
+    {
+        return ESP_FAIL; // Insufficient buffer size
+    }
+
+    double temperature, pressure, humidity;
+
+    if (ESP_OK != bme280_read_temperature(&temperature) ||
+        ESP_OK != bme280_read_pressure(&pressure) ||
+        ESP_OK != bme280_read_humidity(&humidity))
+    {
+        return ESP_FAIL;
+    }
+
+    // Store the data in the provided buffer
+    memcpy(data, &temperature, sizeof(double));
+    memcpy(data + sizeof(double), &pressure, sizeof(double));
+    memcpy(data + 2 * sizeof(double), &humidity, sizeof(double));
+
+    return ESP_OK; // Success
+}
+
+int bme280_sensor_write(void *context, const uint8_t *data, const size_t length)
+{
+    // No specific write operations are necessary for BME280 in this context
+    return ESP_OK; // Success
+}
+
+// Define the sensor interface for BME280 AFTER all functions are defined
+sensor_interface_t bme280_interface = {
+    .init = bme280_sensor_init,
+    .read = bme280_sensor_read,
+    .write = bme280_sensor_write,
+};

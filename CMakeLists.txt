@@ -8,6 +8,9 @@ set(EXTRA_COMPONENT_DIRS
     "./components/low_power_mode"
     "./components/bme280"
     "./components/lora"
+    "./components/gauge"
+    "./components/i2c"
+    "./components/sensor"
     $ENV{IDF_PATH}/examples/common_components/protocol_examples_common
     )
 

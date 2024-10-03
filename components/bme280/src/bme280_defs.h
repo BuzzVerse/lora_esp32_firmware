@@ -1,7 +1,8 @@
-#ifndef BME280_DEFS_H
-#define BME280_DEFS_H
+#ifndef _BME280_DEFS_H_
+#define _BME280_DEFS_H_
 
 #include "bme280_lib.h"
+#include <stdint.h>
 
 /**
  * @file bme280_defs.h
@@ -9,6 +10,27 @@
  *
  * @brief This file contains definitions for the BME280 driver.
  */
+
+#define BME280_DATA_SIZE 3 * sizeof(double) /**< Size of the buffer to hold temperature, pressure, and humidity data*/
+
+/**
+ * @brief Configuration structure for BME280.
+ */
+typedef struct
+{
+    uint8_t i2c_address;
+} bme280_config_t;
+
+/**
+ * @brief Data structure for BME280.
+ */
+typedef struct bme280_data
+{
+    double temp_raw;        // Temperature in degrees Celsius
+    double press_raw;       // Pressure in hPa
+    double hum_raw;         // Humidity in %
+    uint16_t comms_err_cnt; // Communication error counter
+} bme280_data_t;
 
 /**
  * @brief Oversampling values for the BME280 sensor.
@@ -76,4 +98,4 @@ typedef enum
     MODE_NORMAL = BME280_NORMAL_MODE  /**< Normal mode*/
 } bme280_power_mode_t;
 
-#endif // BME280_DEFS_H
+#endif // _BME280_DEFS_H_

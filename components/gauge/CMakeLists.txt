@@ -1,4 +1,4 @@
-set(component_srcs "src/bme280.c" "include/bme280_lib_support.c" "include/bme280_lib.c")
+set(component_srcs "src/bq27441.c")
 
 idf_component_register(SRCS "${component_srcs}"
                        PRIV_REQUIRES i2c sensor

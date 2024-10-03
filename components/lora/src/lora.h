@@ -1,5 +1,5 @@
-#ifndef LORA_H
-#define LORA_H
+#ifndef _LORA_H_
+#define _LORA_H_
 
 #include <stdint.h>
 #include "driver/lora_driver.h"
@@ -38,4 +38,4 @@ lora_status_t lora_send(packet_t *packet);
  */
 lora_status_t lora_receive(packet_t *packet);
 
-#endif // LORA_H
+#endif // _LORA_H_

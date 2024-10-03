@@ -1,5 +1,5 @@
-#ifndef LOW_POWER_MODE_H
-#define LOW_POWER_MODE_H
+#ifndef _LOW_POWER_MODE_H_
+#define _LOW_POWER_MODE_H_
 
 #include <stdint.h>
 
@@ -30,4 +30,4 @@ void low_power_mode_enter_deep_sleep(void);
  */
 void low_power_mode_set_sleep_time(uint32_t sleep_time_sec);
 
-#endif // LOW_POWER_MODE_H
+#endif // _LOW_POWER_MODE_H_
